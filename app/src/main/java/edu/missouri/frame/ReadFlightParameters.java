@@ -1,17 +1,17 @@
 package edu.missouri.frame;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import edu.missouri.drone.Drone;
 import edu.missouri.drone.variable_height.ImprovedDirectDrone;
 import edu.missouri.geom.CordtoGPS;
 import edu.missouri.geom.Point;
 import edu.missouri.geom.SortVertise;
 import edu.missouri.geom.csvCreate;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 public class ReadFlightParameters {
 

@@ -1,9 +1,12 @@
 <component name="libraryTable">
   <library name="Gradle: com.google.android.gms:play-services-safetynet:10.2.1@aar">
     <CLASSES>
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/56e8247bb81c1bb73dfd68d523a5092f/AndroidManifest.xml" />
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/56e8247bb81c1bb73dfd68d523a5092f/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/56e8247bb81c1bb73dfd68d523a5092f/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/19f79bec048dc93f1868e04ffcd745db/jetified-play-services-safetynet-10.2.1/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/19f79bec048dc93f1868e04ffcd745db/jetified-play-services-safetynet-10.2.1/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/19f79bec048dc93f1868e04ffcd745db/jetified-play-services-safetynet-10.2.1/res" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/b93354b9c33daabbdcfcc08bc87510e9/jetified-play-services-safetynet-10.2.1/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/b93354b9c33daabbdcfcc08bc87510e9/jetified-play-services-safetynet-10.2.1/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/b93354b9c33daabbdcfcc08bc87510e9/jetified-play-services-safetynet-10.2.1/AndroidManifest.xml" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

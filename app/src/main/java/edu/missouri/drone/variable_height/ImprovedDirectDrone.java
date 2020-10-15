@@ -10,9 +10,6 @@ import java.util.Map;
 import java.util.Queue;
 
 import edu.missouri.drone.Drone;
-import edu.missouri.drone.Paths;
-import edu.missouri.drone.Turning;
-import edu.missouri.drone.WayPointCheck;
 import edu.missouri.drone.static_height.JiaoDrone;
 import edu.missouri.drone.static_height.PlowDrone;
 import edu.missouri.frame.Area;
@@ -36,221 +33,70 @@ public class ImprovedDirectDrone extends Drone {
 
     public void route() {
         List<Point> done = new ArrayList<>();
+
         double overviewAltitude = Option.cruiseAltitude;
-        Polygon origin = getPolygon();
         setHeading(getPolygon().widthLine().measure() + Math.PI/2.0);
-        Polygon poly = getPolygon();
-        List<Point> wayToPoints= PlowDrone.plan(poly,poly.getLeftBasicPoint());
-        Queue<Point> currentPoints = new LinkedList<>(Drone.subdivide(wayToPoints));
-        Queue<Double> angles = new LinkedList<>();
-        for (int k = 0;k < currentPoints.size();k++){
-            angles.add(getPolygon().widthLine().measure() + Math.PI/2.0);
-        }
 
-        List<Integer> index = getWayBackPoints(poly.getTopPoint());//get the way back(point index on the way back)
-        List<Point> wayBackPoints = new ArrayList<>();
-        Point[] points = poly.toPoints();
-        List<Double> angle = new ArrayList<>();
-        for(int i = 0; i<index.size()-1;i++){
-            int indexStart = index.get(i);
-            int indexEnd = index.get(i+1);
-            Point[] originPoints = poly.toPoints();
-            Point startOrigin = originPoints[indexStart];
-            Point endOrigin = originPoints[indexEnd];
-            Line line = new Line(startOrigin,endOrigin);
-            Point farthestPoint = poly.farthest(line);
-            Line widthLine = Line.perpendicularTo(line,farthestPoint);
-            double theta = widthLine.measure() + Math.PI/2.0;
-            angle.add(theta);
-            wayBackPoints.addAll(PlowDrone.planBack(getPolygon(),indexStart,indexEnd));
-            int num = Drone.subdivide(PlowDrone.planBack(getPolygon(),indexStart,indexEnd)).size();
-            for (int j=0;j<num;j++){
-                angles.add(theta);
-            }
-        }
-        List<Point> turningPoints = new ArrayList<>();
-        Queue<Point> pointBack = new LinkedList<>(Drone.subdivide(wayBackPoints));
-        Queue<Point> wayPoints = QueueFuntions.mergeQueue(currentPoints,pointBack);
+        Queue<Point> currentPoints = new LinkedList<>(Drone.subdivide(PlowDrone.plan(getPolygon(), getLocation())));
 
-        Point firstWayPoint = QueueFuntions.findClosetPoint(wayPoints,area.getStart());
-        wayPoints = QueueFuntions.mergeQueue(currentPoints,pointBack);
-
-        int indexOfFirstWayPoint = QueueFuntions.pointToIndex(wayPoints,firstWayPoint);
-        wayPoints = QueueFuntions.mergeQueue(currentPoints,pointBack);
-        Queue<Point> reSortedQueue = QueueFuntions.pointReSortQueue(wayPoints,indexOfFirstWayPoint,area.getStart());
-        predecideWayPoints = QueueFuntions.pointQueueToList(reSortedQueue);
-        Queue<Double> reSortedAngles = QueueFuntions.angleReSortQueue(angles,indexOfFirstWayPoint);
-        int indexOfPath = 0;
-
-        for (int i=0;i<predecideWayPoints.size();i++){
-            WayPointCheck point = new WayPointCheck(predecideWayPoints,i);
-            if (point.isATurn()||i == predecideWayPoints.size()-1){
-                paths.add(new Paths(predecideWayPoints,indexOfPath,i));
-                indexOfPath = i;
-            }
-        }
-
-        for (int i=0;i<predecideWayPoints.size();i++){
-            WayPointCheck point = new WayPointCheck(predecideWayPoints,i);
-            boolean isTurn = point.isATurn();
-            if(isTurn){
-                turnings.add(new Turning(predecideWayPoints,i));
-            }
-        }
-
-        while(! reSortedQueue.isEmpty()) {
-
-            Point p = new Point();
-            Double a =0.0;
-            Capture c;
-            p = reSortedQueue.remove();
+        while(! currentPoints.isEmpty()) {
+            Point p = currentPoints.remove();
             p = new Point(p.x(), p.y(), overviewAltitude);
-            a = reSortedAngles.remove();
             moveTo(p);
-            if (a==10000.0){
+            Capture c = scan();
 
+            List<Point> toDo = new ArrayList<>();
+            for(Detectable d: c.detectables) {
+                if (done.contains(d)) continue;
+                done.add(d);
+                double k = altitudeNeeded(d);
+                if (k >= overviewAltitude) continue;
+                Point q = scanArea(new Point(d.x(), d.y(), k-10)).closest(getLocation());
+                Point p2 = new Point(q.x(), q.y(), k);
+                toDo.add(p2);
             }
-            else {
-                if (a==null){
-                    c = scan();
-                }
-                else {
-                    c = scan(a);
-                }
-                List<Point> toDo = new ArrayList<>();
-                for(Detectable d: c.detectables) {
-                    if (done.contains(d)) continue;
-                    done.add(d);
-                    double k = altitudeNeeded(d);
-                    if (k >= overviewAltitude) continue;
-                    Point q = scanArea(new Point(d.x(), d.y(), k-10)).closest(getLocation());
-                    Point p2 = new Point(q.x(), q.y(), k);
-                    toDo.add(p2);
-                }
 
-                for(Point q: heuristicTSP(toDo, getLocation(), currentPoints.peek())) {
-                    moveTo(q);
-                    if (a!=null){
-                        scan(a);
-                    }
-                    else {
-                        scan();
-                    }
-                }
+            for(Point q: heuristicTSP(toDo, getLocation(), currentPoints.isEmpty()? null : currentPoints.peek())) {
+                moveTo(q);
+                scan();
             }
         }
-
     }
 
     public Map<Point, Boolean> routes() {
         List<Point> done = new ArrayList<>();
+
         double overviewAltitude = Option.cruiseAltitude;
-        Polygon origin = getPolygon();
         setHeading(getPolygon().widthLine().measure() + Math.PI/2.0);
-        Polygon poly = getPolygon();
-        List<Point> wayToPoints= PlowDrone.plan(poly,poly.getLeftBasicPoint());
-        Queue<Point> currentPoints = new LinkedList<>(Drone.subdivide(wayToPoints));
-        Queue<Double> angles = new LinkedList<>();
-        for (int k = 0;k < currentPoints.size();k++){
-            angles.add(getPolygon().widthLine().measure() + Math.PI/2.0);
-        }
+        List<Point> wayToPoints= PlowDrone.plan(getPolygon(),getLocation());
+        Queue<Point> currentPoints = new LinkedList<>(Drone.subdivide(PlowDrone.plan(getPolygon(), getLocation())));
+        predecideWayPoints = QueueFuntions.pointQueueToList(currentPoints);
 
-        List<Integer> index = getWayBackPoints(poly.getTopPoint());//get the way back(point index on the way back)
-        List<Point> wayBackPoints = new ArrayList<>();
-        Point[] points = poly.toPoints();
-        List<Double> angle = new ArrayList<>();
-        for(int i = 0; i<index.size()-1;i++){
-            int indexStart = index.get(i);
-            int indexEnd = index.get(i+1);
-            Point[] originPoints = poly.toPoints();
-            Point startOrigin = originPoints[indexStart];
-            Point endOrigin = originPoints[indexEnd];
-            Line line = new Line(startOrigin,endOrigin);
-            Point farthestPoint = poly.farthest(line);
-            Line widthLine = Line.perpendicularTo(line,farthestPoint);
-            double theta = widthLine.measure() + Math.PI/2.0;
-            angle.add(theta);
-            wayBackPoints.addAll(PlowDrone.planBack(getPolygon(),indexStart,indexEnd));
-            int num = Drone.subdivide(PlowDrone.planBack(getPolygon(),indexStart,indexEnd)).size();
-            for (int j=0;j<num;j++){
-                angles.add(theta);
-            }
-        }
-        List<Point> turningPoints = new ArrayList<>();
-        Queue<Point> pointBack = new LinkedList<>(Drone.subdivide(wayBackPoints));
-        Queue<Point> wayPoints = QueueFuntions.mergeQueue(currentPoints,pointBack);
 
-        Point firstWayPoint = QueueFuntions.findClosetPoint(wayPoints,area.getStart());
-        wayPoints = QueueFuntions.mergeQueue(currentPoints,pointBack);
-
-        int indexOfFirstWayPoint = QueueFuntions.pointToIndex(wayPoints,firstWayPoint);
-        wayPoints = QueueFuntions.mergeQueue(currentPoints,pointBack);
-        Queue<Point> reSortedQueue = QueueFuntions.pointReSortQueue(wayPoints,indexOfFirstWayPoint,area.getStart());
-        predecideWayPoints = QueueFuntions.pointQueueToList(reSortedQueue);
-        Queue<Double> reSortedAngles = QueueFuntions.angleReSortQueue(angles,indexOfFirstWayPoint);
-        int indexOfPath = 0;
-
-        for (int i=0;i<predecideWayPoints.size();i++){
-            WayPointCheck point = new WayPointCheck(predecideWayPoints,i);
-            if (point.isATurn()||i == predecideWayPoints.size()-1){
-                paths.add(new Paths(predecideWayPoints,indexOfPath,i));
-                indexOfPath = i;
-            }
-        }
-
-        for (int i=0;i<predecideWayPoints.size();i++){
-            WayPointCheck point = new WayPointCheck(predecideWayPoints,i);
-            boolean isTurn = point.isATurn();
-            if(isTurn){
-                turnings.add(new Turning(predecideWayPoints,i));
-            }
-        }
-
-        while(! reSortedQueue.isEmpty()) {
-
-            Point p = new Point();
-            Double a =0.0;
-            Capture c;
-            p = reSortedQueue.remove();
+        while(! currentPoints.isEmpty()) {
+            Point p = currentPoints.remove();
             p = new Point(p.x(), p.y(), overviewAltitude);
-            a = reSortedAngles.remove();
             moveTo(p);
-            if (a==10000.0){
+            Capture c = scan();
 
+            List<Point> toDo = new ArrayList<>();
+            for(Detectable d: c.detectables) {
+                if (done.contains(d)) continue;
+                done.add(d);
+                double k = altitudeNeeded(d);
+                if (k >= overviewAltitude) continue;
+                Point q = scanArea(new Point(d.x(), d.y(), k-10)).closest(getLocation());
+                Point p2 = new Point(q.x(), q.y(), k);
+                toDo.add(p2);
             }
-            else {
-                if (a==null){
-                    c = scan();
-                }
-                else {
-                    c = scan(a);
-                }
-                List<Point> toDo = new ArrayList<>();
-                for(Detectable d: c.detectables) {
-                    if (done.contains(d)) continue;
-                    done.add(d);
-                    double k = altitudeNeeded(d);
-                    if (k >= overviewAltitude) continue;
-                    Point q = scanArea(new Point(d.x(), d.y(), k-10)).closest(getLocation());
-                    Point p2 = new Point(q.x(), q.y(), k);
-                    toDo.add(p2);
-                }
 
-                for(Point q: heuristicTSP(toDo, getLocation(), currentPoints.peek())) {
-                    moveTo(q);
-                    if (a!=null){
-                        scan(a);
-                    }
-                    else {
-                        scan();
-                    }
-                }
+            for(Point q: heuristicTSP(toDo, getLocation(), currentPoints.isEmpty()? null : currentPoints.peek())) {
+                moveTo(q);
+                scan();
             }
         }
+
         Map<Point, Boolean> maps = new LinkedHashMap<>();
-        for(Point point : wayBackPoints){
-            wayToPoints.add(point);
-        }
 
         for(Point data : predecideWayPoints){
             boolean isTurning = false;
@@ -262,6 +108,7 @@ public class ImprovedDirectDrone extends Drone {
             maps.put(new Point(data.x(),data.y()),isTurning);
         }
         return maps;
+
 
 
     }

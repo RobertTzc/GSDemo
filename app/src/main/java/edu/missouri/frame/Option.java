@@ -19,7 +19,7 @@ public class Option {
     public static double decelaration = 1.0;
     public static double gratitudeAccelaration = 9.8;
 
-    public static double bankedTurningRadias = Math.pow(cruiseSpeed,2)/(gratitudeAccelaration*Math.tan(tiltAngle));
+    public static double bankedTurningRadias = Math.pow(cruiseSpeed,2)/(gratitudeAccelaration* Math.tan(tiltAngle));
 
     public static double defaultImageHeight() {
         return 2.0 * cruiseAltitude * Math.tan(FOV_HEIGHT / 2.0);
@@ -29,7 +29,7 @@ public class Option {
         return 2.0 * cruiseAltitude * Math.tan(FOV_WIDTH / 2.0);
     }
 
-    public void setParameters(double cruiseAltitude, GePoint startPoint,Point[] vertices,double overlap){
+    public void setParameters(double cruiseAltitude, GePoint startPoint, Point[] vertices, double overlap){
         this.cruiseAltitude = cruiseAltitude;
         this.startPoint = startPoint;
         this.vertices = vertices;
