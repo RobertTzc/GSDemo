@@ -7,10 +7,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
+import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.util.Log;
+import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -23,6 +26,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
+import androidx.palette.graphics.Palette;
 
 import com.dji.GSDemo.GoogleMap.R;
 import com.google.android.gms.maps.CameraUpdate;
@@ -46,6 +50,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import dji.common.battery.BatteryState;
+import dji.common.camera.SystemState;
 import dji.common.error.DJIError;
 import dji.common.flightcontroller.FlightControllerState;
 import dji.common.mission.waypoint.Waypoint;
@@ -58,9 +64,15 @@ import dji.common.mission.waypoint.WaypointMissionFinishedAction;
 import dji.common.mission.waypoint.WaypointMissionFlightPathMode;
 import dji.common.mission.waypoint.WaypointMissionHeadingMode;
 import dji.common.mission.waypoint.WaypointMissionUploadEvent;
+import dji.common.product.Model;
 import dji.common.useraccount.UserAccountState;
 import dji.common.util.CommonCallbacks;
+import dji.keysdk.BatteryKey;
 import dji.sdk.base.BaseProduct;
+import dji.sdk.battery.Battery;
+import dji.sdk.camera.Camera;
+import dji.sdk.camera.VideoFeeder;
+import dji.sdk.codec.DJICodecManager;
 import dji.sdk.flightcontroller.FlightController;
 import dji.sdk.mission.waypoint.WaypointMissionOperator;
 import dji.sdk.mission.waypoint.WaypointMissionOperatorListener;
@@ -73,34 +85,41 @@ import edu.missouri.frame.GePoint;
 import edu.missouri.frame.ReadFlightParameters;
 
 import static edu.missouri.frame.ReadFlightParameters.splitPointString;
+import static java.lang.Math.sqrt;
 
 
-public class SelfPathPlanning extends FragmentActivity implements View.OnClickListener, GoogleMap.OnMapClickListener, OnMapReadyCallback, SeekBar.OnSeekBarChangeListener {
+public class SelfPathPlanning extends FragmentActivity implements TextureView.SurfaceTextureListener,View.OnClickListener, GoogleMap.OnMapClickListener, OnMapReadyCallback, SeekBar.OnSeekBarChangeListener {
 
     protected static final String TAG = "GSDemoActivity";
 
     private GoogleMap gMap;
-    private Button locate, clear,generate,upload;
+    private Button locate, clear,generate,upload,camera;
     private Button  start, stop;
-    private EditText Altitude;
-    private TextView tv_overlapratio;
-    private CheckBox show;
+    private EditText Altitude,Speed;
+    private TextView tv_overlapratio,tv_speedInfo,tv_batteryInfo;
+    private CheckBox cb_show;
     private SeekBar sb_overlapratio;
+    protected VideoFeeder.VideoDataListener mReceivedVideoDataListener = null;
+    protected DJICodecManager mCodecManager = null;
+    protected TextureView mVideoSurface = null;
+    private Handler handler;
+
 
     private boolean isAdd = true;
     public ArrayList<GePoint> cornerListGeo = new ArrayList<GePoint>();
-    private double droneLocationLat = 181, droneLocationLng = 181;;
+    private double droneLocationLat = 181, droneLocationLng = 181,droneSpeed = 0.0;
     private Marker droneMarker = null;
 
     private float altitude = 100.0f;
-    private float mSpeed = 10.0f;
-    private  int overlapratio=20;
+    private float mSpeed = 5.0f;
+    private  int overlapratio=50;
 
     ArrayList<Marker> markerList = new ArrayList<>();
     private List<Waypoint> waypointList = new ArrayList<>();
 
     public static WaypointMission.Builder waypointMissionBuilder;
     private FlightController mFlightController;
+    private Battery mBatteryStatus;
     private WaypointMissionOperator instance;
     private WaypointMissionFinishedAction mFinishedAction = WaypointMissionFinishedAction.GO_HOME;
     private WaypointMissionHeadingMode mHeadingMode = WaypointMissionHeadingMode.AUTO;
@@ -112,7 +131,7 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
     ArrayList<GePoint> wpGeo =  new ArrayList<>();
     ArrayList<Boolean> wpIsTurn = new ArrayList<>();
     ArrayList<Double> wpAltitude = new ArrayList<>();
-
+    int batteryLevel = 0;
     String fileName,filePath;
     String TimeStampString;
     Tools tool = new Tools();
@@ -126,6 +145,7 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
 
     @Override
     protected void onPause(){
+        uninitPreviewer();
         super.onPause();
     }
 
@@ -133,6 +153,7 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
     protected void onDestroy(){
         unregisterReceiver(mReceiver);
         removeListener();
+        uninitPreviewer();
         super.onDestroy();
     }
 
@@ -158,14 +179,23 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
         locate = (Button) findViewById(R.id.bt_locate);
         clear = (Button) findViewById(R.id.bt_clear);
         Altitude = (EditText) findViewById(R.id.et_altitude);
+        Speed = (EditText)findViewById(R.id.et_speed);
         start = (Button) findViewById(R.id.bt_start);
         stop = (Button) findViewById(R.id.bt_stop);
         generate = (Button)findViewById(R.id.bt_generate_path);
         upload = (Button)findViewById(R.id.bt_upload);
-        show = findViewById(R.id.cb_show);
+        camera = (Button)findViewById(R.id.bt_camera);
+        camera.setOnClickListener(clickListener);
+        cb_show = findViewById(R.id.cb_show);
         sb_overlapratio = findViewById(R.id.sb_overlapratio);
         tv_overlapratio = findViewById(R.id.tv_overlapratio);
+        tv_batteryInfo = findViewById(R.id.tv_batteryInfo);
+        tv_speedInfo = findViewById(R.id.tv_speedInfo);
+        mVideoSurface = (TextureView)findViewById(R.id.video_previewer_surface);
 
+        if (mVideoSurface!= null){
+            mVideoSurface.setSurfaceTextureListener(this);
+        }
 
         locate.setOnClickListener(this);
         clear.setOnClickListener(this);
@@ -174,7 +204,7 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
         generate.setOnClickListener(this);
         upload.setOnClickListener(this);
         sb_overlapratio.setOnSeekBarChangeListener(this);
-        show.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        cb_show.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                 if (b) {
@@ -203,6 +233,20 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
             }
         });
     }
+    public static void startActivity(Context context, Class activity) {
+        Intent intent = new Intent(context, activity);
+        context.startActivity(intent);
+    }
+    private View.OnClickListener clickListener = v -> {
+        switch (v.getId()) {
+            case R.id.bt_camera:
+                setResultToToast("camera pressed");
+                startActivity(SelfPathPlanning.this, cameraView.class);
+                break;
+        }
+    };
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -229,9 +273,7 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
         IntentFilter filter = new IntentFilter();
         filter.addAction(DJIDemoApplication.FLAG_CONNECTION_CHANGE);
         registerReceiver(mReceiver, filter);
-
         initUI();
-
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -251,6 +293,7 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
     private void onProductConnectionChange()
     {
         initFlightController();
+        initPreviewer();
         loginAccount();
     }
 
@@ -276,9 +319,17 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
         if (product != null && product.isConnected()) {
             if (product instanceof Aircraft) {
                 mFlightController = ((Aircraft) product).getFlightController();
+                mBatteryStatus = ((Aircraft)product).getBattery();
             }
         }
-
+        if (mBatteryStatus!=null){
+            mBatteryStatus.setStateCallback(new BatteryState.Callback() {
+                @Override
+                public void onUpdate(BatteryState batteryState) {
+                    batteryLevel = batteryState.getChargeRemainingInPercent();
+                }
+            });
+        }
         if (mFlightController != null) {
             mFlightController.setStateCallback(new FlightControllerState.Callback() {
 
@@ -286,6 +337,7 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                 public void onUpdate(FlightControllerState djiFlightControllerCurrentState) {
                     droneLocationLat = djiFlightControllerCurrentState.getAircraftLocation().getLatitude();
                     droneLocationLng = djiFlightControllerCurrentState.getAircraftLocation().getLongitude();
+                    droneSpeed = sqrt(Math.pow(djiFlightControllerCurrentState.getVelocityX(),2)+Math.pow(djiFlightControllerCurrentState.getVelocityY(),2));
                     updateDroneLocation();
                 }
             });
@@ -365,10 +417,14 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
     public void onMapClick(LatLng point) {
         if (isAdd == true) {
             String alt = Altitude.getText().toString();
+            String sd = Speed.getText().toString();
             try {
                 altitude = Integer.parseInt(alt);
+                mSpeed = Integer.parseInt(sd);
+
             } catch (Exception e) {
-                altitude = 100;
+                altitude = 90;
+                mSpeed=  5.0f;
             }
             edgeAltitudeList.add(altitude);
             MarkerOptions markerOptions = new MarkerOptions();
@@ -385,6 +441,13 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
 
     // Update the drone location based on states from MCU.
     private void updateDroneLocation(){
+        try {
+            tv_speedInfo.setText("Speed_info: "+String.valueOf(droneSpeed)+"m/s");
+            tv_batteryInfo.setText("Battery info: "+String.valueOf(batteryLevel)+"%");
+        } catch(Exception e)
+        {
+            setResultToToast("Error "+e.toString());
+        }
 
         LatLng pos = new LatLng(droneLocationLat, droneLocationLng);
         //Create MarkerOptions object
@@ -425,7 +488,7 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                     }
 
                 });
-                show.setChecked(false);
+                cb_show.setChecked(false);
                 if (waypointList!=null)
                     waypointList.clear();
                 if (waypointMissionBuilder!=null)
@@ -443,14 +506,14 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
             }
             case R.id.bt_generate_path:{
                 updateDroneLocation();
-                if (show.isChecked()==false){
+                if (cb_show.isChecked()==false){
                     setResultToToast("please generate area first");
                     break;
                 }
-                setResultToToast("Generating Waypoint");
+                setResultToToast("Generating Waypoint: "+String.valueOf(overlapratio/100.0)+"%");
 
                 try {
-                    pathCalculation.UpdateBounds(cornerListGeo, cornerListGeo.get(0), edgeAltitudeList.get(0), 20);
+                    pathCalculation.UpdateBounds(cornerListGeo, cornerListGeo.get(0), edgeAltitudeList.get(0), (overlapratio/100.0));
                 } catch(Exception e)
                 {
                     setResultToToast("Error "+e.toString());
@@ -463,10 +526,17 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                 setResultToToast("Num_waypoint:"+String.valueOf(wpGeo.size()));
                 PolylineOptions wpTrace = new PolylineOptions();
                 for (int i = 0;i<wpGeo.size();i++) {
-                    Waypoint mWaypoint = new Waypoint(wpGeo.get(i).latitude, wpGeo.get(i).longtitude, edgeAltitudeList.get(0));
-                    mWaypoint.addAction(new WaypointAction(WaypointActionType.GIMBAL_PITCH, -90));
-                    mWaypoint.addAction(new WaypointAction(WaypointActionType.START_TAKE_PHOTO, 0));
-                    waypointList.add(mWaypoint);
+                    if (wpIsTurn.get(i)) {
+                        Waypoint mWaypoint = new Waypoint(wpGeo.get(i).latitude, wpGeo.get(i).longtitude, edgeAltitudeList.get(0));
+                        mWaypoint.addAction(new WaypointAction(WaypointActionType.GIMBAL_PITCH, -90));
+                        mWaypoint.addAction(new WaypointAction(WaypointActionType.START_TAKE_PHOTO, 0));
+                        mWaypoint.shootPhotoDistanceInterval= 5;
+                        if (i == 0)
+                            mWaypoint.speed = 8.0f;
+                        else
+                            mWaypoint.speed = mSpeed;
+                        waypointList.add(mWaypoint);
+                    }
 
                 }
 
@@ -483,7 +553,6 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                     waypointMissionBuilder = new WaypointMission.Builder();
                     waypointMissionBuilder.waypointList(waypointList).waypointCount(waypointList.size());
                 }
-                mSpeed = 5.0f;
                 mFinishedAction = WaypointMissionFinishedAction.GO_HOME;
                 mHeadingMode = WaypointMissionHeadingMode.AUTO;
                 cornerListGeo.clear();
@@ -525,11 +594,12 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
         for (int i =0;i<wpGeo.size();i++){
             MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(wpGeo.get(i).latitude,wpGeo.get(i).longtitude));
             Marker marker = null;
-            if (wpIsTurn.get(i))
-                marker= gMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.turn_icon)));
+            if (wpIsTurn.get(i)) {
+                marker = gMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.turn_icon)));
+                generatedPath.add(new LatLng(wpGeo.get(i).latitude, wpGeo.get(i).longtitude));
+            }
             else
                 marker = gMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.camera_icon)));
-            generatedPath.add(new LatLng(wpGeo.get(i).latitude,wpGeo.get(i).longtitude));
         }
         pathPoly = gMap.addPolyline(generatedPath);
 
@@ -613,6 +683,8 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                 setResultToToast("Mission Start: " + (error == null ? "Successfully" : error.getDescription()));
             }
         });
+
+
     }
 
     private void stopWaypointMission(){
@@ -633,7 +705,7 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
             setUpMap();
         }
 
-        LatLng MU = new LatLng(38.946766, -92.331883);
+        LatLng MU = new LatLng(droneLocationLat,droneLocationLng);
         //gMap.addMarker(new MarkerOptions().position(MU).title("University of Missouri"));
         gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(MU,15));
         gMap.moveCamera(CameraUpdateFactory.newLatLng(MU));
@@ -655,5 +727,57 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
 
+    }
+
+    private void initPreviewer() {
+
+        BaseProduct product = DJIDemoApplication.getProductInstance();
+
+        if (product == null || !product.isConnected()) {
+            setResultToToast(getString(R.string.disconnected));
+        } else {
+            if (null != mVideoSurface) {
+                mVideoSurface.setSurfaceTextureListener(this);
+            }
+            if (!product.getModel().equals(Model.UNKNOWN_AIRCRAFT)) {
+                VideoFeeder.getInstance().getPrimaryVideoFeed().addVideoDataListener(mReceivedVideoDataListener);
+            }
+        }
+    }
+
+    private void uninitPreviewer() {
+        Camera camera = DJIDemoApplication.getCameraInstance();
+        if (camera != null){
+            // Reset the callback
+            VideoFeeder.getInstance().getPrimaryVideoFeed().addVideoDataListener(null);
+        }
+    }
+
+    @Override
+    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+        Log.e(TAG, "onSurfaceTextureAvailable");
+        if (mCodecManager == null) {
+            mCodecManager = new DJICodecManager(this, surface, width, height);
+        }
+    }
+
+    @Override
+    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+        Log.e(TAG, "onSurfaceTextureSizeChanged");
+    }
+
+    @Override
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+        Log.e(TAG,"onSurfaceTextureDestroyed");
+        if (mCodecManager != null) {
+            mCodecManager.cleanSurface();
+            mCodecManager = null;
+        }
+
+        return false;
+    }
+
+    @Override
+    public void onSurfaceTextureUpdated(SurfaceTexture surface) {
     }
 }

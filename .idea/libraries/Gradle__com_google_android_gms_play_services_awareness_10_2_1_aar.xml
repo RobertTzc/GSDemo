@@ -1,12 +1,9 @@
 <component name="libraryTable">
   <library name="Gradle: com.google.android.gms:play-services-awareness:10.2.1@aar">
     <CLASSES>
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/8fcf574d916cf95e352cc873774bc8a1/jetified-play-services-awareness-10.2.1/AndroidManifest.xml" />
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/8fcf574d916cf95e352cc873774bc8a1/jetified-play-services-awareness-10.2.1/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/8fcf574d916cf95e352cc873774bc8a1/jetified-play-services-awareness-10.2.1/res" />
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/33b5cc89f1aeb282d23cab446b8f4d47/jetified-play-services-awareness-10.2.1/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/33b5cc89f1aeb282d23cab446b8f4d47/jetified-play-services-awareness-10.2.1/AndroidManifest.xml" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/33b5cc89f1aeb282d23cab446b8f4d47/jetified-play-services-awareness-10.2.1/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/f592b03ca83400b634b616aaf21fce20/jetified-play-services-awareness-10.2.1/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/f592b03ca83400b634b616aaf21fce20/jetified-play-services-awareness-10.2.1/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/f592b03ca83400b634b616aaf21fce20/jetified-play-services-awareness-10.2.1/res" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

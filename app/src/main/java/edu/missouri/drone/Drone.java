@@ -160,8 +160,9 @@
      public abstract void visualize(Graphics g);
 ***/
      public static List<Point> subdivide(List<Point> points) {
+         double overlap = Option.overlap;
          List<Point> result = new ArrayList<>();
-         for(Line l: Line.arrayFromPoints(points.toArray(new Point[0]))) result.addAll(l.toSubpoints(new Option().defaultImageHeight()));
+         for(Line l: Line.arrayFromPoints(points.toArray(new Point[0]))) result.addAll(l.toSubpoints(Option.defaultImageHeight()));
          result.add(points.get(points.size()-1));
          return result;
      }

@@ -4,6 +4,8 @@ package edu.missouri.geom;
 import java.util.Arrays;
 import java.util.Collection;
 
+import edu.missouri.frame.Option;
+
 @SuppressWarnings("unused")
 public class Line {
 
@@ -108,14 +110,18 @@ public class Line {
 
 
     public Collection<? extends Point> toSubpoints(double segLength) {
+        double overlap = Option.overlap;
+        double img_height = segLength*(1-overlap);
         if(! (type == SEGMENT)) throw new ArithmeticException("you can't split an infinite ray or line into subpoints");
+        int n = (int) (length()/(img_height)); // one extra for the remainder, but not another for the last point
+        double new_length = (n + 1) * img_height;
+        int new_n  = n + 1;
+        double scale = new_length/length();
+        double dxi = dx()*scale/new_n;
+        double dyi = dy()*scale/new_n;
+        Point[] result = new Point[new_n];
 
-        int n = (int) (length()/segLength) + 1; // one extra for the remainder, but not another for the last point
-        double dxi = dx()/n;
-        double dyi = dy()/n;
-        Point[] result = new Point[n];
-
-        for(int i = 0; i < n; i++) {
+        for(int i = 0; i < new_n; i++) {
             result[i] = new Point(a.x() + i*dxi, a.y() + i*dyi);
         }
         return Arrays.asList(result);

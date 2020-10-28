@@ -7,10 +7,50 @@
     tools:context="com.dji.GSDemo.PathPlanning.MainActivity">
 
     <fragment
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/map"
-        android:name="com.google.android.gms.maps.SupportMapFragment"/>
+        android:layout_centerInParent="true"
+        />
+
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:padding="10dp"
+        >
+
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:padding="10dp"
+        >
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/tv_batteryInfo"
+            android:textColor="#FFFFFF"
+            android:text="Battery_info: inf"
+            android:textSize="10sp"
+            android:padding="5dp"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/tv_speedInfo"
+            android:textColor="#FFFFFF"
+            android:text="Speed_info: inf"
+            android:textSize="10sp"
+            android:padding="5dp"/>
+    </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -30,6 +70,14 @@
                 android:id="@+id/cb_show"
                 android:gravity="center"
                 android:text="finish"/>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="camera"
+                android:id="@+id/bt_camera"
+                android:layout_marginRight="5dp"
+                />
             <EditText
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -38,6 +86,14 @@
                 android:minHeight="5dp"
                 android:inputType="number"
                 />
+
+            <EditText
+                android:id="@+id/et_speed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minHeight="5dp"
+                android:inputType="numberDecimal"
+                android:hint="Speed" />
 
             <Button
                 android:layout_width="wrap_content"
@@ -52,37 +108,35 @@
                 android:id="@+id/bt_clear"
                 android:layout_marginRight="5dp"/>
 
+            <Button
+                android:id="@+id/bt_generate_path"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="5dp"
+                android:text="Generate" />
+
+            <Button
+                android:id="@+id/bt_upload"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="5dp"
+                android:text="upload" />
+
+            <Button
+                android:id="@+id/bt_stop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="5dp"
+                android:background="@color/colorAccent"
+                android:text="stop" />
+
         </LinearLayout>
+
         <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 >
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Generate"
-                android:id="@+id/bt_generate_path"
-                android:layout_marginRight="5dp"/>
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="upload"
-                android:id="@+id/bt_upload"
-                android:layout_marginRight="5dp"/>
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="start"
-                android:id="@+id/bt_start"
-                android:layout_marginRight="5dp"/>
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="stop"
-                android:id="@+id/bt_stop"
-                android:layout_marginRight="5dp"
-                android:background="@color/colorAccent"/>
 
         </LinearLayout>
         <LinearLayout
@@ -98,10 +152,18 @@
             <SeekBar
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:min="0"
+                android:min="50"
                 android:max="100"
                 android:thumbTint="#000000"
                 android:id="@+id/sb_overlapratio"                />
         </LinearLayout>
+
     </LinearLayout>
+
+    <Button
+        android:id="@+id/bt_start"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="5dp"
+        android:text="start" />
 </RelativeLayout>

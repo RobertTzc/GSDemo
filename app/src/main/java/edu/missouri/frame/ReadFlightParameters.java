@@ -65,6 +65,7 @@ public class ReadFlightParameters {
             heights.add(coordinate.getAltitude());
             wayPoints.add(new GePoint(coordinate.getLatitude(), coordinate.getLongitude()));
             isTurnings.add(coordinate.isTurning());
+//            System.out.println(coordinate.getLatitude());
 
         }
         this.altitudes = heights;

@@ -57,68 +57,12 @@ public class PlowDrone extends Drone {
         return planTheta(original, theta, false);
     }
 
-//    public static List<Point> planTheta(Polygon original, double theta, boolean upsideDown) {
-//        double imageWidth = Option.defaultImageWidth();
-//        double imageHeight = Option.defaultImageHeight();
-//        double alt = cruiseAltitude;
-//
-//
-//        Polygon poly = original.rotate(theta);
-//        List<Point> result = new ArrayList<>();
-//
-//        double maxX = poly.rightmost().x() - imageWidth/2.0;
-//        double minX = poly.leftmost().x() + imageWidth/2.0;
-//
-//
-//        int i = upsideDown? 1:0;
-//        for(double x = minX; x < maxX; x += imageWidth) {
-//            Point iUp = poly.top(x);
-//            Point iDown = poly.bottom(x);
-//
-//            double yUp = iUp.y() - imageWidth/2.0;
-//            double yDown = iDown.y() + imageWidth/2.0;
-//
-//            if(i%2 == 0) {
-//                result.add(new Point(x, yUp + imageHeight/2, alt));
-//                result.add(new Point(x, yDown - imageHeight/2, alt));
-//            } else {
-//                result.add(new Point(x, yDown - imageHeight/2, alt));
-//                result.add(new Point(x, yUp + imageHeight/2, alt));
-//            }
-//            i++;
-//        }
-//
-//        // There's usually a remainder...
-//        Point iUp = poly.top(maxX);
-//        Point iDown = poly.bottom(maxX);
-//
-//        if(iUp != null && iDown != null) {
-//            double yUp = iUp.y() - imageWidth/2.0;
-//            double yDown = iDown.y() + imageWidth/2.0;
-//            if (i % 2 == 0) {
-//                result.add(new Point(maxX, yUp + imageHeight/2, alt));
-//                result.add(new Point(maxX, yDown - imageHeight/2, alt));
-//            } else {
-//                result.add(new Point(maxX, yDown - imageHeight/2, alt));
-//                result.add(new Point(maxX, yUp + imageHeight/2, alt));
-//            }
-//        }
-//
-//        if(result.isEmpty()) {
-//            result.add(new Point(poly.leftmost().x(),  upsideDown? poly.upmost().y() : poly.downmost().y()));
-//            result.add(new Point(poly.rightmost().x(), upsideDown? poly.downmost().y() : poly.upmost().y()));
-//        }
-//
-//        Point center = poly.center();
-//        return rotateAll(result, -theta, new Point(center.x(), center.y(), cruiseAltitude));
-//    }
 
     public static List<Point> planTheta(Polygon original, double theta, boolean upsideDown) {
         double imageWidth = Option.defaultImageWidth();
         double imageHeight = Option.defaultImageHeight();
         double alt = cruiseAltitude;
-
-
+        double overlap = Option.overlap;
         Polygon poly = original.rotate(theta);
         List<Point> result = new ArrayList<>();
 
@@ -126,20 +70,22 @@ public class PlowDrone extends Drone {
         double Lx = imageWidth;
         int m = (int) Math.ceil(totalx/Lx);
         double dx = (totalx - Lx)/(m-1);
-        double maxX = poly.rightmost().x() - imageWidth/2.0;
-        double minX = poly.leftmost().x() + imageWidth/2.0;
-//        double maxX = poly.rightmost().x();
-//        double minX = poly.leftmost().x();
-//        double minX = poly.leftmost().x() + im ;//width  = x
-//        double maxX = poly.rightmost().x();
+        double maxX = poly.rightmost().x();
+        double minX = poly.leftmost().x();
         int i = upsideDown? 1:0;
-        for(double x = minX; x < maxX; x += imageWidth) {
+        double lastx = 0;
+        for(double x = minX; x < maxX; x += imageWidth*(1-overlap)) {
+            lastx = x + imageWidth*(1-overlap);
             Point iUp1 = poly.top(x - imageWidth/2.0);
             Point iDown1 = poly.bottom(x - imageWidth/2.0);
             Point iUp2 = poly.top(x + imageWidth/2.0);
             Point iDown2 = poly.bottom(x + imageWidth/2.0);
-            double yUp = iUp1.y()<iUp2.y()?iUp1.y():iUp2.y();
-            double yDown = iDown1.y()>iDown2.y()?iDown1.y():iDown2.y();
+            Point iUpx = poly.top(x);
+            Point iDownx = poly.bottom(x);
+//            double yUp = iUp1.y()<iUp2.y()?iUp1.y():iUp2.y();
+//            double yDown = iDown1.y()>iDown2.y()?iDown1.y():iDown2.y();
+            double yUp = iUpx.y() - imageHeight/2.0;
+            double yDown = iDownx.y() + imageHeight/2.0;
             if(i%2 == 0) {
                 result.add(new Point(x , yUp + imageHeight/2.0, alt));
                 result.add(new Point(x , yDown - imageHeight/2.0, alt));
@@ -150,21 +96,21 @@ public class PlowDrone extends Drone {
             i++;
         }
 
-        // There's usually a remainder...
-        Point iUp = poly.top(maxX - imageWidth/2.0);
-        Point iDown = poly.bottom(maxX -imageWidth/2.0);
-
-        if(iUp != null && iDown != null) {
-            double yUp = iUp.y() - imageWidth/2.0;
-            double yDown = iDown.y()+ imageWidth/2.0;
-            if (i % 2 == 0) {
-                result.add(new Point(maxX, yUp + imageHeight/2.0, alt));
-                result.add(new Point(maxX, yDown - imageHeight/2.0, alt));
-            } else {
-                result.add(new Point(maxX, yDown - imageHeight/2.0, alt));
-                result.add(new Point(maxX, yUp + imageHeight/2.0, alt));
-            }
-        }
+//         There's usually a remainder...
+//        Point iUp = poly.top(lastx - imageWidth/2.0);
+//        Point iDown = poly.bottom(lastx -imageWidth/2.0);
+//
+//        if(iUp != null && iDown != null) {
+//            double yUp = iUp.y() - imageWidth/2.0;
+//            double yDown = iDown.y()+ imageWidth/2.0;
+//            if (i % 2 == 0) {
+//                result.add(new Point(lastx, yUp + imageHeight/2.0, alt));
+//                result.add(new Point(lastx, yDown - imageHeight/2.0, alt));
+//            } else {
+//                result.add(new Point(lastx, yDown - imageHeight/2.0, alt));
+//                result.add(new Point(lastx, yUp + imageHeight/2.0, alt));
+//            }
+//        }
 
         if(result.isEmpty()) {
             result.add(new Point(poly.leftmost().x(),  upsideDown? poly.upmost().y() : poly.downmost().y()));
