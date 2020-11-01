@@ -36,20 +36,14 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/tv_batteryInfo"
+            android:id="@+id/tv_droneInfo"
             android:textColor="#FFFFFF"
-            android:text="Battery_info: inf"
+            android:text="Battery_info: inf\nSpeed_info: inf\nSatellite count: inf"
             android:textSize="10sp"
             android:padding="5dp"
+            android:lineSpacingExtra="5sp"
             />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/tv_speedInfo"
-            android:textColor="#FFFFFF"
-            android:text="Speed_info: inf"
-            android:textSize="10sp"
-            android:padding="5dp"/>
+
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"

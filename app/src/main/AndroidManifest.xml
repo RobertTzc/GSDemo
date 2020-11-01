@@ -40,10 +40,10 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name="com.dji.GSDemo.PathPlanning.cameraView"
-            android:screenOrientation="landscape"></activity>
+            android:screenOrientation="sensorLandscape"></activity>
         <activity
             android:name="com.dji.GSDemo.PathPlanning.SelfPathPlanning"
-            android:screenOrientation="landscape" /> <!-- DJI SDK -->
+            android:screenOrientation="sensorLandscape" /> <!-- DJI SDK -->
         <uses-library android:name="com.android.future.usb.accessory" />
         <uses-library
             android:name="org.apache.http.legacy"
@@ -80,13 +80,13 @@
         </activity>
         <activity
             android:name="com.dji.GSDemo.PathPlanning.MainActivity"
-            android:screenOrientation="landscape" />
+            android:screenOrientation="sensorLandscape" />
         <activity
             android:name="com.dji.GSDemo.PathPlanning.Waypoint1Activity"
-            android:screenOrientation="landscape" />
+            android:screenOrientation="sensorLandscape" />
         <activity
             android:name="com.dji.GSDemo.PathPlanning.FpvActivity"
-            android:screenOrientation="landscape" />
+            android:screenOrientation="sensorLandscape" />
     </application>
 
 </manifest>

@@ -70,7 +70,7 @@ public class PlowDrone extends Drone {
         double Lx = imageWidth;
         int m = (int) Math.ceil(totalx/Lx);
         double dx = (totalx - Lx)/(m-1);
-        double maxX = poly.rightmost().x();
+        double maxX = poly.rightmost().x()- 1;
         double minX = poly.leftmost().x();
         int i = upsideDown? 1:0;
         double lastx = 0;
@@ -86,14 +86,16 @@ public class PlowDrone extends Drone {
 //            double yDown = iDown1.y()>iDown2.y()?iDown1.y():iDown2.y();
             double yUp = iUpx.y() - imageHeight/2.0;
             double yDown = iDownx.y() + imageHeight/2.0;
-            if(i%2 == 0) {
-                result.add(new Point(x , yUp + imageHeight/2.0, alt));
-                result.add(new Point(x , yDown - imageHeight/2.0, alt));
-            } else {
-                result.add(new Point(x , yDown - imageHeight/2.0, alt));
-                result.add(new Point(x , yUp + imageHeight/2.0, alt));
+            if(Math.abs(iUpx.y() - iDownx.y()) > 5){
+                if(i%2 == 0) {
+                    result.add(new Point(x , yUp + imageHeight/2.0, alt));
+                    result.add(new Point(x , yDown - imageHeight/2.0, alt));
+                } else {
+                    result.add(new Point(x , yDown - imageHeight/2.0, alt));
+                    result.add(new Point(x , yUp + imageHeight/2.0, alt));
+                }
+                i++;
             }
-            i++;
         }
 
 //         There's usually a remainder...

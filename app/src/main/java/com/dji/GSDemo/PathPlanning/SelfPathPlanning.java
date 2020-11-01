@@ -44,6 +44,7 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.vision.barcode.Barcode;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -96,7 +97,7 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
     private Button locate, clear,generate,upload,camera;
     private Button  start, stop;
     private EditText Altitude,Speed;
-    private TextView tv_overlapratio,tv_speedInfo,tv_batteryInfo;
+    private TextView tv_overlapratio,tv_droneInfo;
     private CheckBox cb_show;
     private SeekBar sb_overlapratio;
     protected VideoFeeder.VideoDataListener mReceivedVideoDataListener = null;
@@ -108,6 +109,7 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
     private boolean isAdd = true;
     public ArrayList<GePoint> cornerListGeo = new ArrayList<GePoint>();
     private double droneLocationLat = 181, droneLocationLng = 181,droneSpeed = 0.0;
+    private float droneYaw = 0;
     private Marker droneMarker = null;
 
     private float altitude = 100.0f;
@@ -131,7 +133,7 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
     ArrayList<GePoint> wpGeo =  new ArrayList<>();
     ArrayList<Boolean> wpIsTurn = new ArrayList<>();
     ArrayList<Double> wpAltitude = new ArrayList<>();
-    int batteryLevel = 0;
+    int batteryLevel = 0,satelliteCt = 0;
     String fileName,filePath;
     String TimeStampString;
     Tools tool = new Tools();
@@ -189,8 +191,7 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
         cb_show = findViewById(R.id.cb_show);
         sb_overlapratio = findViewById(R.id.sb_overlapratio);
         tv_overlapratio = findViewById(R.id.tv_overlapratio);
-        tv_batteryInfo = findViewById(R.id.tv_batteryInfo);
-        tv_speedInfo = findViewById(R.id.tv_speedInfo);
+        tv_droneInfo = findViewById(R.id.tv_droneInfo);
         mVideoSurface = (TextureView)findViewById(R.id.video_previewer_surface);
 
         if (mVideoSurface!= null){
@@ -320,6 +321,7 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
             if (product instanceof Aircraft) {
                 mFlightController = ((Aircraft) product).getFlightController();
                 mBatteryStatus = ((Aircraft)product).getBattery();
+
             }
         }
         if (mBatteryStatus!=null){
@@ -338,6 +340,8 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
                     droneLocationLat = djiFlightControllerCurrentState.getAircraftLocation().getLatitude();
                     droneLocationLng = djiFlightControllerCurrentState.getAircraftLocation().getLongitude();
                     droneSpeed = sqrt(Math.pow(djiFlightControllerCurrentState.getVelocityX(),2)+Math.pow(djiFlightControllerCurrentState.getVelocityY(),2));
+                    droneYaw = mFlightController.getCompass().getHeading();
+                    satelliteCt = djiFlightControllerCurrentState.getSatelliteCount();
                     updateDroneLocation();
                 }
             });
@@ -420,7 +424,7 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
             String sd = Speed.getText().toString();
             try {
                 altitude = Integer.parseInt(alt);
-                mSpeed = Integer.parseInt(sd);
+                mSpeed = Float.parseFloat(sd);
 
             } catch (Exception e) {
                 altitude = 90;
@@ -440,24 +444,21 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
     }
 
     // Update the drone location based on states from MCU.
+    private static DecimalFormat df = new DecimalFormat("0.00");
     private void updateDroneLocation(){
-        try {
-            tv_speedInfo.setText("Speed_info: "+String.valueOf(droneSpeed)+"m/s");
-            tv_batteryInfo.setText("Battery info: "+String.valueOf(batteryLevel)+"%");
-        } catch(Exception e)
-        {
-            setResultToToast("Error "+e.toString());
-        }
+
 
         LatLng pos = new LatLng(droneLocationLat, droneLocationLng);
         //Create MarkerOptions object
         final MarkerOptions droneMarkerOptions = new MarkerOptions();
         droneMarkerOptions.position(pos);
-        droneMarkerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.aircraft));
-
+        droneMarkerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.drone_icon)).rotation((droneYaw)).anchor(0.5f,0.5f);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                tv_droneInfo.setText("Battery_info: "+String.valueOf(batteryLevel)+"" +
+                        "\nSpeed_info: "+String.valueOf(df.format(droneSpeed))+
+                        "\nSatellite count: "+String.valueOf(satelliteCt));
                 if (droneMarker != null) {
                     droneMarker.remove();
                 }
@@ -530,9 +531,10 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
                         Waypoint mWaypoint = new Waypoint(wpGeo.get(i).latitude, wpGeo.get(i).longtitude, edgeAltitudeList.get(0));
                         mWaypoint.addAction(new WaypointAction(WaypointActionType.GIMBAL_PITCH, -90));
                         mWaypoint.addAction(new WaypointAction(WaypointActionType.START_TAKE_PHOTO, 0));
+                        mWaypoint.altitude = Float.parseFloat(wpAltitude.get(i).toString());
                         mWaypoint.shootPhotoDistanceInterval= 5;
                         if (i == 0)
-                            mWaypoint.speed = 8.0f;
+                            mWaypoint.speed = 10.0f;
                         else
                             mWaypoint.speed = mSpeed;
                         waypointList.add(mWaypoint);
@@ -593,13 +595,12 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
         PolylineOptions generatedPath = new PolylineOptions();
         for (int i =0;i<wpGeo.size();i++){
             MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(wpGeo.get(i).latitude,wpGeo.get(i).longtitude));
-            Marker marker = null;
             if (wpIsTurn.get(i)) {
-                marker = gMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.turn_icon)));
+                gMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.turn_icon)).title(String.valueOf(i+1)+'_'+String.valueOf(wpAltitude.get(i))));
                 generatedPath.add(new LatLng(wpGeo.get(i).latitude, wpGeo.get(i).longtitude));
             }
             else
-                marker = gMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.camera_icon)));
+                gMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.camera_icon)).title(String.valueOf(i+1)+'_'+String.valueOf(wpAltitude.get(i))));
         }
         pathPoly = gMap.addPolyline(generatedPath);
 
@@ -625,7 +626,6 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
 
             waypointMissionBuilder = new WaypointMission.Builder().finishedAction(mFinishedAction)
                     .headingMode(mHeadingMode)
-                    .autoFlightSpeed(mSpeed)
                     .maxFlightSpeed(mSpeed)
                     .flightPathMode(WaypointMissionFlightPathMode.NORMAL);
 
@@ -633,7 +633,6 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
         {
             waypointMissionBuilder.finishedAction(mFinishedAction)
                     .headingMode(mHeadingMode)
-                    .autoFlightSpeed(mSpeed)
                     .maxFlightSpeed(mSpeed)
                     .flightPathMode(WaypointMissionFlightPathMode.NORMAL);
 
