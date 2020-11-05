@@ -1,5 +1,7 @@
 package edu.missouri.drone.variable_height;
 
+import org.apache.commons.math3.special.Erf;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -21,6 +23,8 @@ import edu.missouri.geom.Point;
 import edu.missouri.geom.Polygon;
 
 public class ImprovedDirectDrone extends Drone {
+
+    List<Point> EnergyPoints = new ArrayList<>();
 
 
     Queue<Polygon> regions = new LinkedList<>();
@@ -70,6 +74,7 @@ public class ImprovedDirectDrone extends Drone {
         setHeading(getPolygon().widthLine().measure() + Math.PI/2.0);
         List<Point> wayToPoints= PlowDrone.plan(getPolygon(),getLocation());
         Queue<Point> currentPoints = new LinkedList<>(Drone.subdivide(PlowDrone.plan(getPolygon(), getLocation())));
+
         predecideWayPoints = QueueFuntions.pointQueueToList(currentPoints);
 
 
@@ -108,8 +113,6 @@ public class ImprovedDirectDrone extends Drone {
             maps.put(new Point(data.x(),data.y()),isTurning);
         }
         return maps;
-
-
 
     }
 
@@ -261,5 +264,94 @@ public class ImprovedDirectDrone extends Drone {
 
     // Energy calculations
     // credit to DiFranco and Buttazzo
+    public double energyUsed() {
+        double cruiseSpeed = Option.cruiseSpeed;
+        List<Point> currentPoints = new ArrayList<>(PlowDrone.plan(getPolygon(), getLocation()));
+        Point[] finalPoints = new Point[currentPoints.size()];
+        for (int i=0;i<currentPoints.size();i++){
+            finalPoints[i] = currentPoints.get(i);
+        }
+        Line[] lines = Line.arrayFromPoints(finalPoints);
+        double speedIn, speedOut;
+        double result = 0.0;
+        for(int i = 0; i < lines.length; i++) {
+            // We could probably use some linear algebra to avoid the trig functions here,
+            // but I don't trust myself to do that.
+            speedIn = 0.0;
+            speedOut = 0.0;
+            result += legEnergy(lines[i], speedIn , cruiseSpeed, speedOut );
+        }
+        return result;
+    }
+
+    public static double legEnergy(Line path, double startSpeed, double cruiseSpeed, double endSpeed) {
+        double dist = path.length2D();
+
+        // These calculations are made for a drone with max speed 15 m/s
+        // The Mavic is quite a bit bigger so we're going to (naively) scale things up
+
+        double borderDist = accDist(startSpeed, cruiseSpeed) + decDist(cruiseSpeed, endSpeed);
+        while(borderDist > dist && cruiseSpeed > 0) {
+            cruiseSpeed -= 0.5;
+            borderDist = accDist(startSpeed, cruiseSpeed) + decDist(cruiseSpeed, endSpeed);
+        }
+
+        // at distances around 1 meter we start having some problems
+        if(cruiseSpeed < 0) {
+//            System.err.println("Distance " + dist + " too short to calculate energy cost");
+            return EFFICIENCY_FACTOR * cruiseEnergy(dist, cruiseSpeed);
+        }
+
+        double result =  EFFICIENCY_FACTOR * accEnergy(startSpeed, cruiseSpeed)
+                + EFFICIENCY_FACTOR * decEnergy(cruiseSpeed,endSpeed)
+                + EFFICIENCY_FACTOR * cruiseEnergy(dist - borderDist, cruiseSpeed);
+//        System.out.println("aenergy:"+accEnergy(startSpeed, cruiseSpeed));
+//        System.out.println("cenergy:"+cruiseEnergy(dist - borderDist, cruiseSpeed));
+//        System.out.println("denergy:"+decEnergy(cruiseSpeed,endSpeed));
+//        System.out.println("start speed:"+startSpeed);
+//        System.out.println("crusie speed:"+cruiseSpeed);
+//        System.out.println("end speed:"+endSpeed);
+
+
+        if(path.dz() < 0) result += 210 * path.dz() / DESCENT_SPEED * EFFICIENCY_FACTOR;
+        if(path.dz() > 0) result += 250 * path.dz() / ASCENT_SPEED  * EFFICIENCY_FACTOR;
+//        System.out.println(result);
+        return result;
+    }
+
+    private static double accEnergy(double vIn, double vOut) {
+        double tIn  = accTime(vIn);
+        double tOut = accTime(vOut);
+        return (Math.pow(tOut, 2.35)/2.35 + 220*tOut)
+                - (Math.pow(tIn, 2.35)/2.35 + 220*tIn);
+    }
+    private static double accTime(double v) {
+        return -4 * Math.log(16.138/(1.138+v) - 1) + 11;
+    }
+    private static double accDist(double vIn, double vOut) {
+        double tIn  = accTime(vIn);
+        double tOut = accTime(vOut);
+        return (64.552* Math.log(15.6426+ Math.pow(Math.E, 0.25*tOut)) - 1.138*tOut)
+                - (64.552* Math.log(15.6426+ Math.pow(Math.E, 0.25*tIn )) - 1.138*tIn);
+    }
+
+    public static double decEnergy(double vIn, double vOut) {
+        double tIn = decTime(vIn);
+        double tOut = decTime(vOut);
+        return (313.769*tOut-24.349* Math.pow(tOut, 2)+2.53967* Math.pow(tOut, 3)-0.1105* Math.pow(tOut, 4)+0.0017* Math.pow(tOut, 5))
+                - (313.769*tIn -24.349* Math.pow(tIn , 2)+2.53967* Math.pow(tIn , 3)-0.1105* Math.pow(tIn , 4)+0.0017* Math.pow(tIn , 5));
+    }
+    private static double decTime(double v) {
+        return Math.sqrt(Math.log((v + 0.1)/15.1)/-0.02);
+    }
+    private static double decDist(double vIn, double vOut) {
+        double tIn = decTime(vIn);
+        double tOut = decTime(vOut);
+        return ((-0.1*tOut)+94.6252* Erf.erf(0.141421 * tOut))-((-0.1*tIn)+94.6252* Erf.erf(0.141421*tIn));
+    }
+
+    public static double cruiseEnergy(double dist, double speed) {
+        return (Math.pow(.25*speed, 4) - 8* Math.pow(.25*speed, 2) + 220) * dist/speed;
+    }
 
 }

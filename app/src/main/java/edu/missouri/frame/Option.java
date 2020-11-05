@@ -11,8 +11,9 @@ public class Option {
     public static GePoint startPoint ;
     public static Point[] vertices ;
     public static double overlap;
+    public static double energyPercnetRemaining;
     public static double minCruiseAltitude = 10;
-    public static double cruiseSpeed = 12;
+    public static int cruiseSpeed;
     public static double maxAltitude = 100;
     public static double tiltAngle = 55.0;
     public static double accelaration = 1.0;
@@ -29,11 +30,13 @@ public class Option {
         return 2.0 * cruiseAltitude * Math.tan(FOV_WIDTH / 2.0);
     }
 
-    public void setParameters(double cruiseAltitude, GePoint startPoint, Point[] vertices, double overlap){
+    public void setParameters(double cruiseAltitude, GePoint startPoint, Point[] vertices, double overlap, double energyPercnetRemaining, int cruiseSpeed){
         this.cruiseAltitude = cruiseAltitude;
         this.startPoint = startPoint;
         this.vertices = vertices;
         this.overlap = overlap;
+        this.energyPercnetRemaining = energyPercnetRemaining;
+        this.cruiseSpeed = cruiseSpeed;
     }
 
     public static int distributor = Area.RANDOM;
@@ -42,8 +45,4 @@ public class Option {
     public static double energyBudget = 100000;
     public static double turningPower = 225;
     public static double angleSpeed = 2.1;
-
-    public void setCruiseAltitude(double height){
-        this.cruiseAltitude = height;
-    }
 }

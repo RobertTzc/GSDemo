@@ -85,6 +85,7 @@ import dji.sdk.useraccount.UserAccountManager;
 import edu.missouri.frame.GePoint;
 import edu.missouri.frame.ReadFlightParameters;
 
+import static edu.missouri.frame.GPStoCord.getCord;
 import static edu.missouri.frame.ReadFlightParameters.splitPointString;
 import static java.lang.Math.sqrt;
 
@@ -108,7 +109,7 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
 
     private boolean isAdd = true;
     public ArrayList<GePoint> cornerListGeo = new ArrayList<GePoint>();
-    private double droneLocationLat = 181, droneLocationLng = 181,droneSpeed = 0.0;
+    private double droneLocationLat = 181, droneLocationLng = 181,droneAltitude = 0,droneSpeed = 0.0;
     private float droneYaw = 0;
     private Marker droneMarker = null;
 
@@ -339,6 +340,7 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
                 public void onUpdate(FlightControllerState djiFlightControllerCurrentState) {
                     droneLocationLat = djiFlightControllerCurrentState.getAircraftLocation().getLatitude();
                     droneLocationLng = djiFlightControllerCurrentState.getAircraftLocation().getLongitude();
+                    droneAltitude = djiFlightControllerCurrentState.getAircraftLocation().getAltitude();
                     droneSpeed = sqrt(Math.pow(djiFlightControllerCurrentState.getVelocityX(),2)+Math.pow(djiFlightControllerCurrentState.getVelocityY(),2));
                     droneYaw = mFlightController.getCompass().getHeading();
                     satelliteCt = djiFlightControllerCurrentState.getSatelliteCount();
@@ -457,7 +459,8 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
             @Override
             public void run() {
                 tv_droneInfo.setText("Battery_info: "+String.valueOf(batteryLevel)+"" +
-                        "\nSpeed_info: "+String.valueOf(df.format(droneSpeed))+
+                        "\nSpeed_info: "+String.valueOf(df.format(droneSpeed))+"m/s"+
+                        "\nHeight: "+String.valueOf(droneAltitude)+"m"+
                         "\nSatellite count: "+String.valueOf(satelliteCt));
                 if (droneMarker != null) {
                     droneMarker.remove();
@@ -514,7 +517,7 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
                 setResultToToast("Generating Waypoint: "+String.valueOf(overlapratio/100.0)+"%");
 
                 try {
-                    pathCalculation.UpdateBounds(cornerListGeo, cornerListGeo.get(0), edgeAltitudeList.get(0), (overlapratio/100.0));
+                    pathCalculation.UpdateBounds(cornerListGeo, cornerListGeo.get(0), edgeAltitudeList.get(0), (overlapratio/100.0),1.0,(int)mSpeed);
                 } catch(Exception e)
                 {
                     setResultToToast("Error "+e.toString());
@@ -526,23 +529,35 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
                 DisplayWaypoint();
                 setResultToToast("Num_waypoint:"+String.valueOf(wpGeo.size()));
                 PolylineOptions wpTrace = new PolylineOptions();
+                double distance = 5;
+                for (int i = 0;i<wpGeo.size();i++)
+                {
+                    if(wpIsTurn.get(i)==false && wpIsTurn.get(i+1)==false) {
+                        double[] result = getCord(wpGeo.get(i), wpGeo.get(i + 1));
+                        distance = sqrt((result[0] * result[0]) + (result[1] * result[1]));
+                        break;
+                    }
+                }
+                //initial first waypoint to make faster to the mission spot
+                Waypoint startWaypoint = new Waypoint(droneLocationLat, droneLocationLng,Float.parseFloat(wpAltitude.get(0).toString()));
+                startWaypoint.speed = 10.0f;
+                waypointList.add(startWaypoint);
                 for (int i = 0;i<wpGeo.size();i++) {
                     if (wpIsTurn.get(i)) {
-                        Waypoint mWaypoint = new Waypoint(wpGeo.get(i).latitude, wpGeo.get(i).longtitude, edgeAltitudeList.get(0));
+                        Waypoint mWaypoint = new Waypoint(wpGeo.get(i).latitude, wpGeo.get(i).longtitude, Float.parseFloat(wpAltitude.get(i).toString()));
                         mWaypoint.addAction(new WaypointAction(WaypointActionType.GIMBAL_PITCH, -90));
                         mWaypoint.addAction(new WaypointAction(WaypointActionType.START_TAKE_PHOTO, 0));
-                        mWaypoint.altitude = Float.parseFloat(wpAltitude.get(i).toString());
-                        mWaypoint.shootPhotoDistanceInterval= 5;
-                        if (i == 0)
-                            mWaypoint.speed = 10.0f;
+                        if(i+1<wpGeo.size() && wpIsTurn.get(i+1)==false){
+                            mWaypoint.shootPhotoDistanceInterval= Float.parseFloat(String.valueOf(distance));
+                        }
                         else
-                            mWaypoint.speed = mSpeed;
+                            mWaypoint.shootPhotoDistanceInterval= 0;
+                        mWaypoint.speed = mSpeed;
                         waypointList.add(mWaypoint);
                     }
 
                 }
-
-                setResultToToast("Generate done");
+                setResultToToast("Interval distance is: "+distance+"\nGenerate done");
                 //after the output from the code generate waypoint
 
                 break;
@@ -626,14 +641,14 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
 
             waypointMissionBuilder = new WaypointMission.Builder().finishedAction(mFinishedAction)
                     .headingMode(mHeadingMode)
-                    .maxFlightSpeed(mSpeed)
+                    .maxFlightSpeed(10.0f)
                     .flightPathMode(WaypointMissionFlightPathMode.NORMAL);
 
         }else
         {
             waypointMissionBuilder.finishedAction(mFinishedAction)
                     .headingMode(mHeadingMode)
-                    .maxFlightSpeed(mSpeed)
+                    .maxFlightSpeed(10.0f)
                     .flightPathMode(WaypointMissionFlightPathMode.NORMAL);
 
         }

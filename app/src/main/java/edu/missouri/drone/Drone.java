@@ -15,9 +15,9 @@
  public abstract class Drone {
 
      // From the DJI spec sheet on the Mavic Pro:
-     public static final double ASPECT_RATIO             = 3.0/4.0;                           // ratio
-     public static final double FOV_WIDTH                = Math.toRadians(78.8);              // radians
-     public static final double FOV_HEIGHT               = 1.0/ASPECT_RATIO * FOV_WIDTH;      // radians
+     public static final double ASPECT_RATIO             = 9.0/16.0;                           // ratio
+     public static final double FOV_WIDTH                = Math.toRadians(67.0);              // radians
+     public static final double FOV_HEIGHT               = ASPECT_RATIO * FOV_WIDTH;      // radians
      public static final double MAX_TRAVEL_DISTANCE      = 12874.8;                           // meters
      public static final double ASCENT_SPEED             = 5.0;                               // meters per second
      public static final double DESCENT_SPEED            = 3.0;                               // meters per second
@@ -30,7 +30,7 @@
      // The Mavic is a much nicer drone - weighs half as much with higher quality motors and
      // This one is calculated such that the total travel distance given by DJI
      // costs about the total energy of the drone at the optimal speed (15.5 m/s, apparently)
-     public static final double EFFICIENCY_FACTOR  = 0.4;
+     public static final double EFFICIENCY_FACTOR  = 1.0;
 
 
      private Point location;
@@ -173,4 +173,7 @@
      }
 
      // Metrics:
+     // Energy calculations
+     // credit to DiFranco and Buttazzo
+
  }

@@ -61,25 +61,23 @@ public class PlowDrone extends Drone {
     public static List<Point> planTheta(Polygon original, double theta, boolean upsideDown) {
         double imageWidth = Option.defaultImageWidth();
         double imageHeight = Option.defaultImageHeight();
-        double alt = cruiseAltitude;
+        double alt = Option.cruiseAltitude;
         double overlap = Option.overlap;
         Polygon poly = original.rotate(theta);
         List<Point> result = new ArrayList<>();
-
         double totalx = poly.longestLine().length(); //d
         double Lx = imageWidth;
-        int m = (int) Math.ceil(totalx/Lx);
-        double dx = (totalx - Lx)/(m-1);
-        double maxX = poly.rightmost().x()- 1;
+//        double dx = (totalx - Lx)/(m-1);
+        double maxX = poly.rightmost().x();
         double minX = poly.leftmost().x();
         int i = upsideDown? 1:0;
         double lastx = 0;
         for(double x = minX; x < maxX; x += imageWidth*(1-overlap)) {
-            lastx = x + imageWidth*(1-overlap);
-            Point iUp1 = poly.top(x - imageWidth/2.0);
-            Point iDown1 = poly.bottom(x - imageWidth/2.0);
-            Point iUp2 = poly.top(x + imageWidth/2.0);
-            Point iDown2 = poly.bottom(x + imageWidth/2.0);
+//            lastx = x + imageWidth*(1-overlap);
+//            Point iUp1 = poly.top(x - imageWidth/2.0);
+//            Point iDown1 = poly.bottom(x - imageWidth/2.0);
+//            Point iUp2 = poly.top(x + imageWidth/2.0);
+//            Point iDown2 = poly.bottom(x + imageWidth/2.0);
             Point iUpx = poly.top(x);
             Point iDownx = poly.bottom(x);
 //            double yUp = iUp1.y()<iUp2.y()?iUp1.y():iUp2.y();
@@ -114,10 +112,10 @@ public class PlowDrone extends Drone {
 //            }
 //        }
 
-        if(result.isEmpty()) {
-            result.add(new Point(poly.leftmost().x(),  upsideDown? poly.upmost().y() : poly.downmost().y()));
-            result.add(new Point(poly.rightmost().x(), upsideDown? poly.downmost().y() : poly.upmost().y()));
-        }
+//        if(result.isEmpty()) {
+//            result.add(new Point(poly.leftmost().x(),  upsideDown? poly.upmost().y() : poly.downmost().y()));
+//            result.add(new Point(poly.rightmost().x(), upsideDown? poly.downmost().y() : poly.upmost().y()));
+//        }
 
         Point center = poly.center();
         return rotateAll(result, -theta, new Point(center.x(), center.y(), cruiseAltitude));

@@ -189,6 +189,16 @@ public class Line {
         return result;
     }
 
+    public static Line[] arrayFromPointsPair(Point[] points) {
+        Line[] result = new Line[points.length/2];
+        int j = 0;
+        for(int i = 0; i < points.length-1; i+=2) {
+            result[j] = new Line(points[i], points[i+1]);
+            j++;
+        }
+        return result;
+    }
+
     @Override
     public boolean equals(Object l) {
         if(! (l instanceof Line)) return false;

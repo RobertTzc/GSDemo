@@ -49,7 +49,7 @@ public class main {
 
 // below are output
         ReadFlightParameters model = new ReadFlightParameters();
-        model.UpdateBounds(GPSVertices2, GPSstartpoint, height, overlap);
+        model.UpdateBounds(GPSVertices2, GPSstartpoint, height, overlap,1.0,5);
 
 
         List<GePoint> wayPoints = model.getWaypoints();
@@ -57,7 +57,7 @@ public class main {
         List<Double> altitudes = model.getAltitudes();
         System.out.println(wayPoints.size());
         System.out.println(wayPoints.get(1).latitude);
-        model.UpdateBounds(GPSVertices, GPSstartpoint, height, overlap);
+        model.UpdateBounds(GPSVertices, GPSstartpoint, height, overlap,1.0,5);
 
         List<Double> altitudes2 = model.getAltitudes();
         List<GePoint> wayPoints2 = model.getWaypoints();

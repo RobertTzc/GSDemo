@@ -19,6 +19,9 @@ public class ReadFlightParameters {
     public List<GePoint> wayPoints;
     public List<Double> altitudes;
     public List<Boolean> isTurnings;
+    public double energyRemaining;
+    public double horizonGap;
+    public double verticalGap;
 
     public Area area;
     public Drone drone;
@@ -26,7 +29,7 @@ public class ReadFlightParameters {
     public ReadFlightParameters() {
     }
 
-    public void UpdateBounds(List<GePoint> GPSvertices, GePoint GPSstartPoint, double height, double overlap) {
+    public void UpdateBounds(List<GePoint> GPSvertices, GePoint GPSstartPoint, double height, double overlap, double energyPercnetRemaining, int speed) {
 
         int verticesNum = GPSvertices.size();
         List<GePoint> GPSverticesSorted = new SortVertise(GPSvertices).getCounterClockwiseVertices();
@@ -35,7 +38,7 @@ public class ReadFlightParameters {
             List<Point> points = new ArrayList<Point>();
             verticesTmp[i] = GPSToCord(GPSverticesSorted.get(i), GPSstartPoint);
         }
-        new Option().setParameters(height, GPSstartPoint, verticesTmp, overlap);
+        new Option().setParameters(height, GPSstartPoint, verticesTmp, overlap,energyPercnetRemaining,speed);
         planPath();
     }
 
@@ -44,6 +47,8 @@ public class ReadFlightParameters {
         area = Area.readPolygonFromCSV();
         drone = new ImprovedDirectDrone(area);
         Map<Point, Boolean> maps = ((ImprovedDirectDrone) drone).routes();
+        double energyBudget = drone.TOTAL_ENERGY * (Option.energyPercnetRemaining-0.2);//20% alarm
+        double energyUse = ((ImprovedDirectDrone) drone).energyUsed();
         Iterator<Map.Entry<Point, Boolean>> entries = maps.entrySet().iterator();
         List<Point> waypoints = new ArrayList<>();
         List<Point> turningPoints = new ArrayList<>();
@@ -65,12 +70,24 @@ public class ReadFlightParameters {
             heights.add(coordinate.getAltitude());
             wayPoints.add(new GePoint(coordinate.getLatitude(), coordinate.getLongitude()));
             isTurnings.add(coordinate.isTurning());
-//            System.out.println(coordinate.getLatitude());
 
+        }
+        double energyRemaining;
+        if (energyUse>energyBudget){
+            energyRemaining = 0.0;
+        }
+        else {
+            energyRemaining = energyUse;
         }
         this.altitudes = heights;
         this.isTurnings = isTurnings;
         this.wayPoints = wayPoints;
+        this.energyRemaining = energyRemaining;
+        this.horizonGap = (1-Option.overlap)*Option.defaultImageHeight();
+        this.verticalGap = (1-Option.overlap)*Option.defaultImageWidth();
+        System.out.println(horizonGap);
+        System.out.println(verticalGap);
+
 
     }
 
