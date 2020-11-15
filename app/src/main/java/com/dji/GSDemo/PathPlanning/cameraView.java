@@ -17,8 +17,10 @@ import android.widget.ToggleButton;
 
 import com.dji.GSDemo.GoogleMap.R;
 
+import java.text.DecimalFormat;
 import java.util.Date;
 
+import dji.common.battery.BatteryState;
 import dji.common.camera.SettingsDefinitions;
 import dji.common.camera.SystemState;
 import dji.common.error.DJIError;
@@ -27,6 +29,7 @@ import dji.common.product.Model;
 import dji.common.useraccount.UserAccountState;
 import dji.common.util.CommonCallbacks;
 import dji.sdk.base.BaseProduct;
+import dji.sdk.battery.Battery;
 import dji.sdk.camera.Camera;
 import dji.sdk.camera.VideoFeeder;
 import dji.sdk.codec.DJICodecManager;
@@ -34,7 +37,9 @@ import dji.sdk.flightcontroller.FlightController;
 import dji.sdk.products.Aircraft;
 import dji.sdk.useraccount.UserAccountManager;
 
-public class cameraView extends AppCompatActivity implements TextureView.SurfaceTextureListener, View.OnClickListener {
+import static java.lang.Math.sqrt;
+
+public class cameraView extends AppCompatActivity implements TextureView.SurfaceTextureListener {
 
     private static final String TAG = FpvActivity.class.getName();
     protected VideoFeeder.VideoDataListener mReceivedVideoDataListener = null;
@@ -43,12 +48,13 @@ public class cameraView extends AppCompatActivity implements TextureView.Surface
     protected DJICodecManager mCodecManager = null;
 
     protected TextureView mVideoSurface = null;
-    private TextView recordingTime,coord_info_lat,coord_info_lng,coord_info_alt;
 
     private Handler handler;
 
     private FlightController mFlightController;
-    private double droneLocationLat,droneLocationLng,droneLocationAlt;
+    private Battery mBatteryStatus;
+    DroneStatus droneStatus = new DroneStatus();
+    private static DecimalFormat df = new DecimalFormat("0.00");
     Tools tool = new Tools();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,9 +97,7 @@ public class cameraView extends AppCompatActivity implements TextureView.Surface
 
                             @Override
                             public void run() {
-                                coord_info_lat.setText(Double. toString(droneLocationLat));
-                                coord_info_lng.setText(Double. toString(droneLocationLng));
-                                coord_info_alt.setText(Double. toString(droneLocationAlt));
+                                displayDroneStatus();
                             }
                         });
                     }
@@ -101,25 +105,43 @@ public class cameraView extends AppCompatActivity implements TextureView.Surface
             });
 
         }
-
+    }
+    public void displayDroneStatus(){
+        TextView tv_droneInfo;
+        tv_droneInfo = findViewById(R.id.tv_droneInfo);
+        tv_droneInfo.setText("Battery_info: "+String.valueOf(droneStatus.batteryPercentage)+"" +
+                "\nSatellite count: "+String.valueOf(droneStatus.satelliteCount)+
+                "\nSpeed_info: "+String.valueOf(df.format(droneStatus.droneSpeed))+"m/s"+
+                "\nHeight: "+String.valueOf(df.format(droneStatus.droneHeight))+"m"+
+                "\nDrone heading : "+ String.valueOf(droneStatus.droneHeading));
     }
     private void initFlightController() {
-
         BaseProduct product = DJIDemoApplication.getProductInstance();
         if (product != null && product.isConnected()) {
             if (product instanceof Aircraft) {
                 mFlightController = ((Aircraft) product).getFlightController();
+                mBatteryStatus = ((Aircraft)product).getBattery();
+
             }
         }
-
+        if (mBatteryStatus!=null){
+            mBatteryStatus.setStateCallback(new BatteryState.Callback() {
+                @Override
+                public void onUpdate(BatteryState batteryState) {
+                    droneStatus.batteryPercentage = batteryState.getChargeRemainingInPercent();
+                }
+            });
+        }
         if (mFlightController != null) {
             mFlightController.setStateCallback(new FlightControllerState.Callback() {
-
                 @Override
                 public void onUpdate(FlightControllerState djiFlightControllerCurrentState) {
-                    droneLocationLat = djiFlightControllerCurrentState.getAircraftLocation().getLatitude();
-                    droneLocationLng = djiFlightControllerCurrentState.getAircraftLocation().getLongitude();
-                    droneLocationAlt =  djiFlightControllerCurrentState.getAircraftLocation().getAltitude();
+                    droneStatus.droneLatitude = djiFlightControllerCurrentState.getAircraftLocation().getLatitude();
+                    droneStatus.droneLongtitude = djiFlightControllerCurrentState.getAircraftLocation().getLongitude();
+                    droneStatus.droneHeight = djiFlightControllerCurrentState.getAircraftLocation().getAltitude();
+                    droneStatus.droneSpeed = sqrt(Math.pow(djiFlightControllerCurrentState.getVelocityX(),2)+Math.pow(djiFlightControllerCurrentState.getVelocityY(),2));
+                    droneStatus.droneHeading = mFlightController.getCompass().getHeading();
+                    droneStatus.satelliteCount= djiFlightControllerCurrentState.getSatelliteCount();
                 }
             });
         }
@@ -145,51 +167,9 @@ public class cameraView extends AppCompatActivity implements TextureView.Surface
                     }
                 });
     }
-
-    @Override
-    public void onResume() {
-        Log.e(TAG, "onResume");
-        super.onResume();
-        initPreviewer();
-        onProductChange();
-
-        if(mVideoSurface == null) {
-            Log.e(TAG, "mVideoSurface is null");
-        }
-    }
-
-    @Override
-    public void onPause() {
-        Log.e(TAG, "onPause");
-        uninitPreviewer();
-        super.onPause();
-    }
-
-    @Override
-    public void onStop() {
-        Log.e(TAG, "onStop");
-        super.onStop();
-    }
-
-    public void onReturn(View view){
-        Log.e(TAG, "onReturn");
-        this.finish();
-    }
-
-    @Override
-    protected void onDestroy() {
-        Log.e(TAG, "onDestroy");
-        uninitPreviewer();
-        super.onDestroy();
-    }
-
     private void initUI() {
         // init mVideoSurface
         mVideoSurface = (TextureView)findViewById(R.id.video_previewer_surface);
-        recordingTime = (TextView) findViewById(R.id.timer);
-        coord_info_lat = findViewById(R.id.coord_info_lat);
-        coord_info_lng = findViewById(R.id.coord_info_lng);
-        coord_info_alt = findViewById(R.id.coord_info_alt);
         if (null != mVideoSurface) {
             mVideoSurface.setSurfaceTextureListener(this);
         }
@@ -257,113 +237,39 @@ public class cameraView extends AppCompatActivity implements TextureView.Surface
     }
 
     @Override
-    public void onClick(View v) {
+    public void onResume() {
+        Log.e(TAG, "onResume");
+        super.onResume();
+        initPreviewer();
+        onProductChange();
 
-        switch (v.getId()) {
-            case R.id.btn_capture:{
-                captureAction();
-                break;
-            }
-            case R.id.btn_shoot_photo_mode:{
-                switchCameraMode(SettingsDefinitions.CameraMode.SHOOT_PHOTO);
-                break;
-            }
-            case R.id.btn_record_video_mode:{
-                switchCameraMode(SettingsDefinitions.CameraMode.RECORD_VIDEO);
-                break;
-            }
-            default:
-                break;
+        if(mVideoSurface == null) {
+            Log.e(TAG, "mVideoSurface is null");
         }
     }
 
-    private void switchCameraMode(SettingsDefinitions.CameraMode cameraMode){
-
-        Camera camera = DJIDemoApplication.getCameraInstance();
-        if (camera != null) {
-            camera.setMode(cameraMode, new CommonCallbacks.CompletionCallback() {
-                @Override
-                public void onResult(DJIError error) {
-
-                    if (error == null) {
-                        showToast("Switch Camera Mode Succeeded");
-                    } else {
-                        showToast(error.getDescription());
-                    }
-                }
-            });
-        }
+    @Override
+    public void onPause() {
+        Log.e(TAG, "onPause");
+        uninitPreviewer();
+        super.onPause();
     }
 
-    // Method for taking photo
-    private void captureAction(){
-
-        final Camera camera = DJIDemoApplication.getCameraInstance();
-        if (camera != null) {
-
-            SettingsDefinitions.ShootPhotoMode photoMode = SettingsDefinitions.ShootPhotoMode.SINGLE; // Set the camera capture mode as Single mode
-            camera.setShootPhotoMode(photoMode, new CommonCallbacks.CompletionCallback(){
-                @Override
-                public void onResult(DJIError djiError) {
-                    if (null == djiError) {
-                        handler.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                camera.startShootPhoto(new CommonCallbacks.CompletionCallback() {
-                                    @Override
-                                    public void onResult(DJIError djiError) {
-                                        if (djiError == null) {
-                                            showToast("take photo: success");
-                                        } else {
-                                            showToast(djiError.getDescription());
-                                        }
-                                    }
-                                });
-                            }
-                        }, 2000);
-                    }
-                }
-            });
-        }
+    @Override
+    public void onStop() {
+        Log.e(TAG, "onStop");
+        super.onStop();
     }
 
-    // Method for starting recording
-    private void startRecord(){
-
-        final Camera camera = DJIDemoApplication.getCameraInstance();
-        if (camera != null) {
-            camera.startRecordVideo(new CommonCallbacks.CompletionCallback(){
-                @Override
-                public void onResult(DJIError djiError)
-                {
-                    if (djiError == null) {
-                        showToast("Record video: success");
-                    }else {
-                        showToast(djiError.getDescription());
-                    }
-                }
-            }); // Execute the startRecordVideo API
-        }
+    public void onReturn(View view){
+        Log.e(TAG, "onReturn");
+        this.finish();
     }
 
-    // Method for stopping recording
-    private void stopRecord(){
-
-        Camera camera = DJIDemoApplication.getCameraInstance();
-        if (camera != null) {
-            camera.stopRecordVideo(new CommonCallbacks.CompletionCallback(){
-
-                @Override
-                public void onResult(DJIError djiError)
-                {
-                    if(djiError == null) {
-                        showToast("Stop recording: success");
-                    }else {
-                        showToast(djiError.getDescription());
-                    }
-                }
-            }); // Execute the stopRecordVideo API
-        }
-
+    @Override
+    protected void onDestroy() {
+        Log.e(TAG, "onDestroy");
+        uninitPreviewer();
+        super.onDestroy();
     }
 }

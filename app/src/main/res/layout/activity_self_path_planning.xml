@@ -146,10 +146,10 @@
             <SeekBar
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:min="50"
+                android:min="0"
                 android:max="100"
                 android:thumbTint="#000000"
-                android:id="@+id/sb_overlapratio"                />
+                android:id="@+id/sb_overlapratio"/>
         </LinearLayout>
 
     </LinearLayout>

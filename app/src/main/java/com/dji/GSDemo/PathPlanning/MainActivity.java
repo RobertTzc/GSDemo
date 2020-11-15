@@ -22,8 +22,9 @@ public class MainActivity extends AppCompatActivity {
             case R.id.btn_cust_waypoint:
                 startActivity(MainActivity.this, SelfPathPlanning.class);
                 break;
-
-
+            case R.id.btn_tapFly:
+                startActivity(MainActivity.this, TapFly.class);
+                break;
         }
     };
 
@@ -34,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btn_waypoint).setOnClickListener(clickListener);
         findViewById(R.id.btn_video).setOnClickListener(clickListener);
         findViewById(R.id.btn_cust_waypoint).setOnClickListener(clickListener);
+        findViewById(R.id.btn_tapFly).setOnClickListener(clickListener);
     }
 
     public static void startActivity(Context context, Class activity) {

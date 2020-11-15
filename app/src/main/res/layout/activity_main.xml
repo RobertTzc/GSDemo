@@ -17,7 +17,7 @@
         android:text="Waypoint"
         android:textColor="@color/colorWhite"
         android:textSize="20dp"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="20dp"
         android:layout_weight="1"/>
     <Button
         android:id="@+id/btn_video"
@@ -29,7 +29,7 @@
         android:text="Video"
         android:textColor="@color/colorWhite"
         android:textSize="20dp"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="20dp"
         android:layout_weight="1"/>
     <Button
         android:id="@+id/btn_cust_waypoint"
@@ -41,8 +41,20 @@
         android:text="Self path"
         android:textColor="@color/colorWhite"
         android:textSize="20dp"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="20dp"
+        android:layout_weight="1" />
+    <Button
+        android:id="@+id/btn_tapFly"
+        android:layout_width="150dp"
+        android:layout_height="55dp"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="center"
+        android:background="@drawable/round_btn"
+        android:text="Tap Fly"
+        android:textColor="@color/colorWhite"
+        android:textSize="20dp"
+        android:layout_marginTop="20dp"
         android:layout_weight="1"
-        android:layout_marginBottom="60dp"/>
+        android:layout_marginBottom="20dp"/>
 
 </LinearLayout>

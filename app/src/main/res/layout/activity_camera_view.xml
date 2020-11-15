@@ -1,11 +1,8 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:layout_marginBottom="10dp"
-    android:layout_marginTop="10dp"
-    android:layout_marginLeft="10dp"
-    android:layout_marginRight="10dp">
+    android:orientation="vertical">
 
     <TextureView
         android:id="@+id/video_previewer_surface"
@@ -14,39 +11,15 @@
         android:layout_alignParentRight="true"
         android:layout_gravity="center" />
 
-
     <TextView
-        android:id="@+id/coord_info_lat"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="40dp"
-        android:layout_marginEnd="38dp"
-        android:gravity="center"
-        android:text="latitude"
-        android:textColor="#ffffff" />
-
-    <TextView
-        android:id="@+id/coord_info_lng"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
+        android:id="@+id/tv_droneInfo"
+        android:textColor="#FFFFFF"
+        android:textSize="10sp"
+        android:text="information"
+        android:padding="5dp"
+        android:lineSpacingExtra="5sp"
         android:layout_marginTop="10dp"
-        android:layout_marginEnd="38dp"
-        android:gravity="center"
-        android:text="longtitude"
-        android:textColor="#ffffff"
-        android:layout_below="@id/coord_info_lat"/>
-
-    <TextView
-        android:id="@+id/coord_info_alt"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/coord_info_lng"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="38dp"
-        android:gravity="center"
-        android:text="altitude"
-        android:textColor="#ffffff" />
-</LinearLayout>
+        />
+</RelativeLayout>

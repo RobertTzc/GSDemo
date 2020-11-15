@@ -72,7 +72,6 @@ import dji.keysdk.BatteryKey;
 import dji.sdk.base.BaseProduct;
 import dji.sdk.battery.Battery;
 import dji.sdk.camera.Camera;
-import dji.sdk.camera.VideoFeeder;
 import dji.sdk.codec.DJICodecManager;
 import dji.sdk.flightcontroller.FlightController;
 import dji.sdk.mission.waypoint.WaypointMissionOperator;
@@ -90,7 +89,7 @@ import static edu.missouri.frame.ReadFlightParameters.splitPointString;
 import static java.lang.Math.sqrt;
 
 
-public class SelfPathPlanning extends FragmentActivity implements TextureView.SurfaceTextureListener,View.OnClickListener, GoogleMap.OnMapClickListener, OnMapReadyCallback, SeekBar.OnSeekBarChangeListener {
+public class SelfPathPlanning extends FragmentActivity implements View.OnClickListener, GoogleMap.OnMapClickListener, OnMapReadyCallback, SeekBar.OnSeekBarChangeListener {
 
     protected static final String TAG = "GSDemoActivity";
 
@@ -98,18 +97,15 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
     private Button locate, clear,generate,upload,camera;
     private Button  start, stop;
     private EditText Altitude,Speed;
-    private TextView tv_overlapratio,tv_droneInfo;
+    private TextView tv_overlapratio;
     private CheckBox cb_show;
     private SeekBar sb_overlapratio;
-    protected VideoFeeder.VideoDataListener mReceivedVideoDataListener = null;
     protected DJICodecManager mCodecManager = null;
-    protected TextureView mVideoSurface = null;
     private Handler handler;
 
 
     private boolean isAdd = true;
     public ArrayList<GePoint> cornerListGeo = new ArrayList<GePoint>();
-    private double droneLocationLat = 181, droneLocationLng = 181,droneAltitude = 0,droneSpeed = 0.0;
     private float droneYaw = 0;
     private Marker droneMarker = null;
 
@@ -138,6 +134,8 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
     String fileName,filePath;
     String TimeStampString;
     Tools tool = new Tools();
+    DroneStatus droneStatus = new DroneStatus();
+    private static DecimalFormat df = new DecimalFormat("0.00");
 
 
     @Override
@@ -148,7 +146,6 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
 
     @Override
     protected void onPause(){
-        uninitPreviewer();
         super.onPause();
     }
 
@@ -156,7 +153,6 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
     protected void onDestroy(){
         unregisterReceiver(mReceiver);
         removeListener();
-        uninitPreviewer();
         super.onDestroy();
     }
 
@@ -192,12 +188,6 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
         cb_show = findViewById(R.id.cb_show);
         sb_overlapratio = findViewById(R.id.sb_overlapratio);
         tv_overlapratio = findViewById(R.id.tv_overlapratio);
-        tv_droneInfo = findViewById(R.id.tv_droneInfo);
-        mVideoSurface = (TextureView)findViewById(R.id.video_previewer_surface);
-
-        if (mVideoSurface!= null){
-            mVideoSurface.setSurfaceTextureListener(this);
-        }
 
         locate.setOnClickListener(this);
         clear.setOnClickListener(this);
@@ -242,8 +232,13 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
     private View.OnClickListener clickListener = v -> {
         switch (v.getId()) {
             case R.id.bt_camera:
-                setResultToToast("camera pressed");
-                startActivity(SelfPathPlanning.this, cameraView.class);
+                //setResultToToast("camera pressed");
+                try {
+                    startActivity(SelfPathPlanning.this, cameraView.class);
+                }
+                catch(Exception e) {
+                    setResultToToast(e.toString());
+                }
                 break;
         }
     };
@@ -295,7 +290,6 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
     private void onProductConnectionChange()
     {
         initFlightController();
-        initPreviewer();
         loginAccount();
     }
 
@@ -316,7 +310,6 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
     }
 
     private void initFlightController() {
-
         BaseProduct product = DJIDemoApplication.getProductInstance();
         if (product != null && product.isConnected()) {
             if (product instanceof Aircraft) {
@@ -329,22 +322,21 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
             mBatteryStatus.setStateCallback(new BatteryState.Callback() {
                 @Override
                 public void onUpdate(BatteryState batteryState) {
-                    batteryLevel = batteryState.getChargeRemainingInPercent();
+                    droneStatus.batteryPercentage = batteryState.getChargeRemainingInPercent();
                 }
             });
         }
         if (mFlightController != null) {
             mFlightController.setStateCallback(new FlightControllerState.Callback() {
-
                 @Override
                 public void onUpdate(FlightControllerState djiFlightControllerCurrentState) {
-                    droneLocationLat = djiFlightControllerCurrentState.getAircraftLocation().getLatitude();
-                    droneLocationLng = djiFlightControllerCurrentState.getAircraftLocation().getLongitude();
-                    droneAltitude = djiFlightControllerCurrentState.getAircraftLocation().getAltitude();
-                    droneSpeed = sqrt(Math.pow(djiFlightControllerCurrentState.getVelocityX(),2)+Math.pow(djiFlightControllerCurrentState.getVelocityY(),2));
-                    droneYaw = mFlightController.getCompass().getHeading();
-                    satelliteCt = djiFlightControllerCurrentState.getSatelliteCount();
-                    updateDroneLocation();
+                    droneStatus.droneLatitude = djiFlightControllerCurrentState.getAircraftLocation().getLatitude();
+                    droneStatus.droneLongtitude = djiFlightControllerCurrentState.getAircraftLocation().getLongitude();
+                    droneStatus.droneHeight = djiFlightControllerCurrentState.getAircraftLocation().getAltitude();
+                    droneStatus.droneSpeed = sqrt(Math.pow(djiFlightControllerCurrentState.getVelocityX(),2)+Math.pow(djiFlightControllerCurrentState.getVelocityY(),2));
+                    droneStatus.droneHeading = mFlightController.getCompass().getHeading();
+                    droneStatus.satelliteCount= djiFlightControllerCurrentState.getSatelliteCount();
+                    drawDroneInfo();
                 }
             });
         }
@@ -432,11 +424,15 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
                 altitude = 90;
                 mSpeed=  5.0f;
             }
+            setResultToToast("Creating edge with\nHeight: "+String.valueOf(df.format(altitude))+"\nSpeed: "+String.valueOf(df.format(mSpeed)));
             edgeAltitudeList.add(altitude);
             MarkerOptions markerOptions = new MarkerOptions();
             markerOptions.position(point);
             Marker marker = gMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.pin_icon)).draggable(true).title(String.valueOf(markerList.size()+1)+'_'+String.valueOf(altitude)));
             markerList.add(marker);
+        }
+        else{
+            setResultToToast("Not able to add points right now, clear polygon first");
         }
     }
 
@@ -446,11 +442,20 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
     }
 
     // Update the drone location based on states from MCU.
-    private static DecimalFormat df = new DecimalFormat("0.00");
-    private void updateDroneLocation(){
-
-
-        LatLng pos = new LatLng(droneLocationLat, droneLocationLng);
+    public void displayDroneStatus(){
+        TextView tv_droneInfo;
+        tv_droneInfo = findViewById(R.id.tv_droneInfo);
+        tv_droneInfo.setText("Battery_info: "+String.valueOf(droneStatus.batteryPercentage)+"" +
+                "\nSatellite count: "+String.valueOf(droneStatus.satelliteCount)+
+                "\nSpeed_info: "+String.valueOf(df.format(droneStatus.droneSpeed))+"m/s"+
+                "\nSpeed set: "+String.valueOf(droneStatus.plannedSpeed)+"m/s"+
+                "\nHeight: "+String.valueOf(df.format(droneStatus.droneHeight))+"m"+
+                "\nOverlap set: "+ String.valueOf(droneStatus.overlapRatio)+
+                "\nDrone heading : "+ String.valueOf(droneStatus.droneHeading)
+        );
+    }
+    private void drawDroneInfo(){
+        LatLng pos = new LatLng(droneStatus.droneLatitude, droneStatus.droneLongtitude);
         //Create MarkerOptions object
         final MarkerOptions droneMarkerOptions = new MarkerOptions();
         droneMarkerOptions.position(pos);
@@ -458,15 +463,12 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                tv_droneInfo.setText("Battery_info: "+String.valueOf(batteryLevel)+"" +
-                        "\nSpeed_info: "+String.valueOf(df.format(droneSpeed))+"m/s"+
-                        "\nHeight: "+String.valueOf(droneAltitude)+"m"+
-                        "\nSatellite count: "+String.valueOf(satelliteCt));
+                displayDroneStatus();
                 if (droneMarker != null) {
                     droneMarker.remove();
                 }
 
-                if (checkGpsCoordination(droneLocationLat, droneLocationLng)) {
+                if (checkGpsCoordination(droneStatus.droneLatitude, droneStatus.droneLongtitude)) {
                     droneMarker = gMap.addMarker(droneMarkerOptions);
                 }
             }
@@ -480,7 +482,7 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.bt_locate:{
-                //updateDroneLocation();
+                //drawDroneInfo();
                 cameraUpdate(); // Locate the drone's place
                 break;
             }
@@ -505,11 +507,11 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
                     edgeLatLngList.clear();
                 if (markerList!=null)
                     markerList.clear();
-                updateDroneLocation();
+                drawDroneInfo();
                 break;
             }
             case R.id.bt_generate_path:{
-                updateDroneLocation();
+                drawDroneInfo();
                 if (cb_show.isChecked()==false){
                     setResultToToast("please generate area first");
                     break;
@@ -539,7 +541,7 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
                     }
                 }
                 //initial first waypoint to make faster to the mission spot
-                Waypoint startWaypoint = new Waypoint(droneLocationLat, droneLocationLng,Float.parseFloat(wpAltitude.get(0).toString()));
+                Waypoint startWaypoint = new Waypoint(droneStatus.droneLatitude, droneStatus.droneLongtitude,Float.parseFloat(wpAltitude.get(0).toString()));
                 startWaypoint.speed = 10.0f;
                 waypointList.add(startWaypoint);
                 for (int i = 0;i<wpGeo.size();i++) {
@@ -583,10 +585,19 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
                         .getPath() + "/DJI_Log/";
                 fileName = "PathPlanning_Project_"+java.text.DateFormat.getDateTimeInstance().format(new Date())+".txt";
                 tool.writeTxtToFile("Start project time: " + TimeStampString, filePath, fileName);
+                tool.writeTxtToFile("Battery_info: "+String.valueOf(droneStatus.batteryPercentage)+"" +
+                        "\nSatellite count: "+String.valueOf(droneStatus.satelliteCount)+
+                        "\nSpeed_info: "+String.valueOf(df.format(droneStatus.droneSpeed))+"m/s"+
+                        "\nSpeed set: "+String.valueOf(droneStatus.plannedSpeed)+"m/s"+
+                        "\nHeight: "+String.valueOf(df.format(droneStatus.droneHeight))+"m"+
+                        "\nOverlap set: "+ String.valueOf(droneStatus.overlapRatio)+
+                        "\nDrone heading : "+ String.valueOf(droneStatus.droneHeading),
+                        filePath, fileName);
                 for (int i = 0;i<waypointList.size();i++) {
                     tool.writeTxtToFile("Waypoint_" + String.valueOf(i) + ": " + String.valueOf(waypointList.get(i).coordinate.getLatitude()) + "\t" + String.valueOf(waypointList.get(i).coordinate.getLongitude()) + "\t" + String.valueOf(waypointList.get(i).altitude),
                             filePath, fileName);
                 }
+                droneStatus.plannedSpeed = Math.round(waypointList.get(0).speed);
                 startWaypointMission();
                 break;
             }
@@ -600,7 +611,7 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
     }
 
     private void cameraUpdate(){
-        LatLng pos = new LatLng(droneLocationLat, droneLocationLng);
+        LatLng pos = new LatLng(droneStatus.droneLatitude, droneStatus.droneLongtitude);
         float zoomlevel = (float) 18.0;
         CameraUpdate cu = CameraUpdateFactory.newLatLngZoom(pos, zoomlevel);
         gMap.moveCamera(cu);
@@ -611,28 +622,14 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
         for (int i =0;i<wpGeo.size();i++){
             MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(wpGeo.get(i).latitude,wpGeo.get(i).longtitude));
             if (wpIsTurn.get(i)) {
-                gMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.turn_icon)).title(String.valueOf(i+1)+'_'+String.valueOf(wpAltitude.get(i))));
+                gMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.turn_icon)).anchor(0.5f,0.5f).title(String.valueOf(i+1)+'_'+String.valueOf(wpAltitude.get(i))));
                 generatedPath.add(new LatLng(wpGeo.get(i).latitude, wpGeo.get(i).longtitude));
             }
             else
-                gMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.camera_icon)).title(String.valueOf(i+1)+'_'+String.valueOf(wpAltitude.get(i))));
+                gMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.camera_icon)).anchor(0.5f,0.5f).alpha(0.5f).title(String.valueOf(i+1)+'_'+String.valueOf(wpAltitude.get(i))));
         }
         pathPoly = gMap.addPolyline(generatedPath);
 
-    }
-
-    String nulltoIntegerDefalt(String value){
-        if(!isIntValue(value)) value="0";
-        return value;
-    }
-
-    boolean isIntValue(String val)
-    {
-        try {
-            val=val.replace(" ","");
-            Integer.parseInt(val);
-        } catch (Exception e) {return false;}
-        return true;
     }
 
     private void configWayPointMission(){
@@ -690,7 +687,7 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
     }
 
     private void startWaypointMission(){
-
+        droneStatus.plannedSpeed = Math.round(edgeAltitudeList.get(0));
         getWaypointMissionOperator().startMission(new CommonCallbacks.CompletionCallback() {
             @Override
             public void onResult(DJIError error) {
@@ -719,7 +716,7 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
             setUpMap();
         }
 
-        LatLng MU = new LatLng(droneLocationLat,droneLocationLng);
+        LatLng MU = new LatLng(38.9129228409671,-92.2959491063508);
         //gMap.addMarker(new MarkerOptions().position(MU).title("University of Missouri"));
         gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(MU,15));
         gMap.moveCamera(CameraUpdateFactory.newLatLng(MU));
@@ -729,6 +726,7 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
     public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
         if (seekBar.getId() == R.id.sb_overlapratio){
             overlapratio = i;
+            droneStatus.overlapRatio = i;
             tv_overlapratio.setText("overlap: "+String.valueOf(i)+"%");
         }
     }
@@ -743,55 +741,4 @@ public class SelfPathPlanning extends FragmentActivity implements TextureView.Su
 
     }
 
-    private void initPreviewer() {
-
-        BaseProduct product = DJIDemoApplication.getProductInstance();
-
-        if (product == null || !product.isConnected()) {
-            setResultToToast(getString(R.string.disconnected));
-        } else {
-            if (null != mVideoSurface) {
-                mVideoSurface.setSurfaceTextureListener(this);
-            }
-            if (!product.getModel().equals(Model.UNKNOWN_AIRCRAFT)) {
-                VideoFeeder.getInstance().getPrimaryVideoFeed().addVideoDataListener(mReceivedVideoDataListener);
-            }
-        }
-    }
-
-    private void uninitPreviewer() {
-        Camera camera = DJIDemoApplication.getCameraInstance();
-        if (camera != null){
-            // Reset the callback
-            VideoFeeder.getInstance().getPrimaryVideoFeed().addVideoDataListener(null);
-        }
-    }
-
-    @Override
-    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-        Log.e(TAG, "onSurfaceTextureAvailable");
-        if (mCodecManager == null) {
-            mCodecManager = new DJICodecManager(this, surface, width, height);
-        }
-    }
-
-    @Override
-    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-        Log.e(TAG, "onSurfaceTextureSizeChanged");
-    }
-
-    @Override
-    public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-        Log.e(TAG,"onSurfaceTextureDestroyed");
-        if (mCodecManager != null) {
-            mCodecManager.cleanSurface();
-            mCodecManager = null;
-        }
-
-        return false;
-    }
-
-    @Override
-    public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-    }
 }
