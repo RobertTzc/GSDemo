@@ -102,7 +102,7 @@ public class ImprovedDirectDrone extends Drone {
             }
         }
 
-        Map<Point, Boolean> maps = new LinkedHashMap<>();
+        Map<Point,Boolean> maps = new LinkedHashMap<>();
 
         for(Point data : predecideWayPoints){
             boolean isTurning = false;
@@ -272,6 +272,13 @@ public class ImprovedDirectDrone extends Drone {
         Line[] lines = Line.arrayFromPoints(finalPoints);
         double speedIn, speedOut;
         double result = 0.0;
+        Line toLine = new Line(Option.startPoint,finalPoints[0]);
+        Line backLine = new Line(finalPoints[finalPoints.length-1],Option.endPoint);
+        System.out.println(toLine.a());
+        System.out.println(toLine.b());
+        System.out.println(backLine.a());
+        System.out.println(backLine.b());
+        result += legEnergy(toLine, 0 , Option.toandBackSpeed, 0 );
         for(int i = 0; i < lines.length; i++) {
             // We could probably use some linear algebra to avoid the trig functions here,
             // but I don't trust myself to do that.
@@ -279,6 +286,7 @@ public class ImprovedDirectDrone extends Drone {
             speedOut = 0.0;
             result += legEnergy(lines[i], speedIn , cruiseSpeed, speedOut );
         }
+        result += legEnergy(backLine, 0 , Option.toandBackSpeed, 0 );
         return result;
     }
 
@@ -303,9 +311,6 @@ public class ImprovedDirectDrone extends Drone {
         double result =  EFFICIENCY_FACTOR * accEnergy(startSpeed, cruiseSpeed)
                 + EFFICIENCY_FACTOR * decEnergy(cruiseSpeed,endSpeed)
                 + EFFICIENCY_FACTOR * cruiseEnergy(dist - borderDist, cruiseSpeed);
-        System.out.println("aenergy:"+accEnergy(startSpeed, cruiseSpeed));
-        System.out.println("cenergy:"+cruiseEnergy(dist - borderDist, cruiseSpeed));
-        System.out.println("denergy:"+decEnergy(cruiseSpeed,endSpeed));
 //        System.out.println("start speed:"+startSpeed);
 //        System.out.println("crusie speed:"+cruiseSpeed);
 //        System.out.println("end speed:"+endSpeed);
@@ -313,7 +318,6 @@ public class ImprovedDirectDrone extends Drone {
 
         if(path.dz() < 0) result += 210 * path.dz() / DESCENT_SPEED * EFFICIENCY_FACTOR;
         if(path.dz() > 0) result += 250 * path.dz() / ASCENT_SPEED  * EFFICIENCY_FACTOR;
-        System.out.println(result);
         return result;
     }
 
@@ -329,15 +333,15 @@ public class ImprovedDirectDrone extends Drone {
     private static double accDist(double vIn, double vOut) {
         double tIn  = accTime(vIn);
         double tOut = accTime(vOut);
-        return (64.552* Math.log(15.6426+ Math.pow(Math.E, 0.25*tOut)) - 1.138*tOut)
-                - (64.552* Math.log(15.6426+ Math.pow(Math.E, 0.25*tIn )) - 1.138*tIn);
+        return (64.552*Math.log(15.6426+Math.pow(Math.E, 0.25*tOut)) - 1.138*tOut)
+                - (64.552*Math.log(15.6426+Math.pow(Math.E, 0.25*tIn )) - 1.138*tIn);
     }
 
     public static double decEnergy(double vIn, double vOut) {
         double tIn = decTime(vIn);
         double tOut = decTime(vOut);
-        return (313.769*tOut-24.349* Math.pow(tOut, 2)+2.53967* Math.pow(tOut, 3)-0.1105* Math.pow(tOut, 4)+0.0017* Math.pow(tOut, 5))
-                - (313.769*tIn -24.349* Math.pow(tIn , 2)+2.53967* Math.pow(tIn , 3)-0.1105* Math.pow(tIn , 4)+0.0017* Math.pow(tIn , 5));
+        return (313.769*tOut-24.349*Math.pow(tOut, 2)+2.53967*Math.pow(tOut, 3)-0.1105*Math.pow(tOut, 4)+0.0017*Math.pow(tOut, 5))
+                - (313.769*tIn -24.349*Math.pow(tIn , 2)+2.53967*Math.pow(tIn , 3)-0.1105*Math.pow(tIn , 4)+0.0017*Math.pow(tIn , 5));
     }
     private static double decTime(double v) {
         return Math.sqrt(Math.log((v + 0.1)/15.1)/-0.02);
@@ -349,7 +353,7 @@ public class ImprovedDirectDrone extends Drone {
     }
 
     public static double cruiseEnergy(double dist, double speed) {
-        return (Math.pow(.25*speed, 4) - 8* Math.pow(.25*speed, 2) + 220) * dist/speed;
+        return (Math.pow(.25*speed, 4) - 8*Math.pow(.25*speed, 2) + 220) * dist/speed;
     }
 
 }

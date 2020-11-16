@@ -464,7 +464,7 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
         //Create MarkerOptions object
         final MarkerOptions droneMarkerOptions = new MarkerOptions().position(dronePos);
         final MarkerOptions homeMarkerOptions = new MarkerOptions().position(homePos);
-        droneMarkerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.drone_icon)).rotation((droneYaw)).anchor(0.5f,0.5f);
+        droneMarkerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.drone_icon)).rotation((droneStatus.droneHeading)).anchor(0.5f,0.5f);
         homeMarkerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.drone_home_icon)).anchor(0.5f,0.5f);
         runOnUiThread(new Runnable() {
             @Override
@@ -529,7 +529,7 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                 setResultToToast("Generating Waypoint: "+String.valueOf(overlapratio/100.0)+"%");
 
                 try {
-                    pathCalculation.UpdateBounds(cornerListGeo, edgeAltitudeList.get(0),cornerListGeo.get(0),edgeAltitudeList.get(0),droneStatus);
+                    pathCalculation.UpdateBounds(cornerListGeo, edgeAltitudeList.get(0),droneStatus);
                 } catch(Exception e)
                 {
                     setResultToToast("Error "+e.toString());

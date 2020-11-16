@@ -8,11 +8,14 @@ import static edu.missouri.drone.Drone.FOV_WIDTH;
 public class Option {
 
     public static double cruiseAltitude ;
-    public static GePoint startPoint ;
+    public static Point startPoint ;
+    public static GePoint GPSstartPoint ;
+    public static Point endPoint ;
     public static Point[] vertices ;
     public static double overlap;
-    public static double energyPercnetRemaining;
+    public static int energyPercnetRemaining;
     public static int cruiseSpeed;
+    public static int toandBackSpeed;
     public static double minCruiseAltitude = 10;
     public static double maxAltitude = 100;
     public static double tiltAngle = 55.0;
@@ -20,7 +23,7 @@ public class Option {
     public static double decelaration = 1.0;
     public static double gratitudeAccelaration = 9.8;
 
-    public static double bankedTurningRadias = Math.pow(cruiseSpeed,2)/(gratitudeAccelaration* Math.tan(tiltAngle));
+    public static double bankedTurningRadias = Math.pow(cruiseSpeed,2)/(gratitudeAccelaration*Math.tan(tiltAngle));
 
     public static double defaultImageHeight() {
         return 2.0 * cruiseAltitude * Math.tan(FOV_HEIGHT / 2.0);
@@ -30,13 +33,17 @@ public class Option {
         return 2.0 * cruiseAltitude * Math.tan(FOV_WIDTH / 2.0);
     }
 
-    public void setParameters(double cruiseAltitude, GePoint startPoint, Point[] vertices, double overlap, double energyPercnetRemaining, int cruiseSpeed){
+    public void setParameters(double cruiseAltitude,GePoint GPSstartPoint, Point startPoint,Point endPoint, Point[] vertices, int overlap, int energyPercnetRemaining, int cruiseSpeed, int toandBackSpeed){
         this.cruiseAltitude = cruiseAltitude;
         this.startPoint = startPoint;
+        this.endPoint = endPoint;
         this.vertices = vertices;
-        this.overlap = overlap;
+        this.overlap = overlap/100.0;
         this.energyPercnetRemaining = energyPercnetRemaining;
         this.cruiseSpeed = cruiseSpeed;
+        this.toandBackSpeed = toandBackSpeed;
+        this.GPSstartPoint = GPSstartPoint;
+
     }
 
     public static int distributor = Area.RANDOM;

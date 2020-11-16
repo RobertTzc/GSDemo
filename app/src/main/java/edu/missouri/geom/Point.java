@@ -17,6 +17,13 @@ public class Point {
         coordinates[1] = y;
     }
 
+    public Point(Point p, double z) {
+        coordinates = new double[3];
+        coordinates[0] = p.x();
+        coordinates[1] = p.y();
+        coordinates[2] = z;
+    }
+
 
     public Point(double... coordinates) {
         this.coordinates = coordinates.clone();

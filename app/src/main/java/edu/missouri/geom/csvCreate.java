@@ -23,8 +23,8 @@ public class csvCreate {
     public csvCreate(List<Point> predecideWayPoints, List<Point> wayToPorint){
         this.predecideWayPoints = predecideWayPoints;
         this.wayToPorint = wayToPorint;
-        standardLatitude = Option.startPoint.latitude;
-        standardLongitude =  Option.startPoint.longtitude;
+        standardLatitude = Option.GPSstartPoint.latitude;
+        standardLongitude =  Option.GPSstartPoint.longtitude;
         standaX = 0;
         standaY  = 0;
         altitude = Option.cruiseAltitude;

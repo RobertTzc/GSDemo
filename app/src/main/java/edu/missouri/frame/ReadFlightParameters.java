@@ -16,11 +16,12 @@ import edu.missouri.geom.csvCreate;
 
 public class ReadFlightParameters {
     public int plannedSpeed,prePlannedSpeed;
-    public double overlap;
+    public int overlap;
     public double height;
-    public double energyPercnetRemaining;
+    public int energyPercnetRemaining;
     public List<GePoint> GPSvertices;
     public GePoint GPSstartPoint;
+    public GePoint GPSendPoint;
 
     public List<GePoint> wayPoints;
     public List<Double> altitudes;
@@ -36,13 +37,14 @@ public class ReadFlightParameters {
 
     public ReadFlightParameters() {
     }
-    public void UpdateBounds(List<GePoint> GPSvertices, double height, GePoint GPSstartPoint, double startPointHeightdouble, DroneStatus droneStatus)
+    public void UpdateBounds(List<GePoint> GPSvertices,  double height, DroneStatus droneStatus)
     {
-        this.GPSstartPoint = GPSstartPoint;
+        this.GPSstartPoint = new GePoint(droneStatus.droneLatitude,droneStatus.droneLongtitude);
+        this.GPSendPoint = new GePoint(droneStatus.homeLatitude,droneStatus.homeLongtitude);
         this.GPSvertices = GPSvertices;
         this.height = height;
-        this.overlap = (float)droneStatus.overlapRatio/100;
-        this.energyPercnetRemaining = (float)droneStatus.batteryPercentage/100;
+        this.overlap = droneStatus.overlapRatio;
+        this.energyPercnetRemaining = droneStatus.batteryPercentage;
         this.plannedSpeed = droneStatus.plannedSpeed;
         this.prePlannedSpeed = droneStatus.prePlannedSpeed;
         /***
@@ -52,7 +54,6 @@ public class ReadFlightParameters {
          *
          */
 
-
         int verticesNum = GPSvertices.size();
         List<GePoint> GPSverticesSorted = new SortVertise(GPSvertices).getCounterClockwiseVertices();
         Point[] verticesTmp = new Point[verticesNum];
@@ -60,7 +61,13 @@ public class ReadFlightParameters {
             List<Point> points = new ArrayList<Point>();
             verticesTmp[i] = GPSToCord(GPSverticesSorted.get(i), GPSstartPoint);
         }
-        new Option().setParameters(height, GPSstartPoint, verticesTmp, overlap,energyPercnetRemaining,plannedSpeed);
+        Point startPoint =  new Point(GPSToCord(GPSstartPoint, GPSstartPoint),droneStatus.droneHeight);
+        Point endPoint = new Point(GPSToCord(GPSendPoint, GPSstartPoint),0);
+//        if (GPSstartPoint.latitude == GPSendPoint.latitude && GPSstartPoint.longtitude==GPSendPoint.longtitude){
+//            endPoint = GPSToCord(GPSstartPoint, GPSstartPoint);
+//        }
+
+        new Option().setParameters(height,GPSstartPoint,startPoint,endPoint, verticesTmp, overlap,energyPercnetRemaining,plannedSpeed,prePlannedSpeed);
         planPath();
     }
 
@@ -70,7 +77,7 @@ public class ReadFlightParameters {
         area = Area.readPolygonFromCSV();
         drone = new ImprovedDirectDrone(area);
         Map<Point, Boolean> maps = drone.routes();
-        double energyBudget = drone.TOTAL_ENERGY * (Option.energyPercnetRemaining-20)/100.0;//20% alarm
+        double energyBudget = drone.TOTAL_ENERGY * (Option.energyPercnetRemaining)/100.0;//20% alarm
         double energyUse = drone.energyUsed(plannedSpeed);
         Iterator<Map.Entry<Point, Boolean>> entries = maps.entrySet().iterator();
         List<Point> waypoints = new ArrayList<>();
@@ -101,7 +108,7 @@ public class ReadFlightParameters {
             this.reconmendSpeed = drone.getOptimalSpeed(plannedSpeed,energyBudget);
         }
         else {
-            this.energyPercentRemainingAfterPlan = (int) Math.round(100*(drone.TOTAL_ENERGY-energyUse)/drone.TOTAL_ENERGY);
+            this.energyPercentRemainingAfterPlan = (int)Math.round(100*(0.01*Option.energyPercnetRemaining*drone.TOTAL_ENERGY-energyUse)/drone.TOTAL_ENERGY);
             this.ifEnergyEnough = true;
             this.reconmendSpeed = plannedSpeed;
         }

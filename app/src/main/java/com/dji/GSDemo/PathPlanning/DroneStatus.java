@@ -13,7 +13,7 @@ public class DroneStatus {
         public float droneHeight=0;// in meters, note this is current height, not the path planning height
         public double droneSpeed=0; //in meter/seconds, note this is current speed, not the path planning speed
         public int plannedSpeed=0; //in meter/seconds, this is the speed set for path coverage
-        public float overlapRatio=0; //[0,100] in percentage
+        public int overlapRatio=0; //[0,100] in percentage
         public int prePlannedSpeed = 15;
 
         public float cameraFOV = 66.0f;
