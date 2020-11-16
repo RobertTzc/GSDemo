@@ -596,13 +596,18 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                         .getPath() + "/DJI_Log/";
                 fileName = "PathPlanning_Project_"+java.text.DateFormat.getDateTimeInstance().format(new Date())+".txt";
                 tool.writeTxtToFile("Start project time: " + TimeStampString, filePath, fileName);
-                tool.writeTxtToFile("Battery_info: "+String.valueOf(droneStatus.batteryPercentage)+"" +
+                tool.writeTxtToFile("Drone setting info:\n",filePath,fileName);
+                tool.writeTxtToFile("Battery_info: "+String.valueOf(droneStatus.batteryPercentage)+
+                        "\nEstimate battery left: "+String.valueOf(droneStatus.batteryPrecentageRemian)+
                         "\nSatellite count: "+String.valueOf(droneStatus.satelliteCount)+
-                        "\nSpeed_info: "+String.valueOf(df.format(droneStatus.droneSpeed))+"m/s"+
-                        "\nSpeed set: "+String.valueOf(droneStatus.plannedSpeed)+"m/s"+
-                        "\nHeight: "+String.valueOf(df.format(droneStatus.droneHeight))+"m"+
-                        "\nOverlap set: "+ String.valueOf(droneStatus.overlapRatio)+
-                        "\nDrone heading : "+ String.valueOf(droneStatus.droneHeading),
+                        "\nSpeed_info: "+String.valueOf(df.format(droneStatus.droneSpeed))+
+                        "\nSpeed set: "+String.valueOf(droneStatus.plannedSpeed)+
+                        "\nprePlannedSpeed set: "+String.valueOf(droneStatus.prePlannedSpeed)+
+                        "\nDrone current location: "+String.valueOf(droneStatus.droneLatitude)+","+String.valueOf(droneStatus.droneLongtitude)+
+                        "\nDrone current Height: "+String.valueOf(df.format(droneStatus.droneHeight))+
+                        "\nDrone heading : "+ String.valueOf(droneStatus.droneHeading)+
+                        "\nDrone home location: "+String.valueOf(droneStatus.homeLatitude)+","+String.valueOf(droneStatus.homeLongtitude)+
+                        "\nOverlap set: "+ String.valueOf(droneStatus.overlapRatio),
                         filePath, fileName);
                 for (int i = 0;i<waypointList.size();i++) {
                     tool.writeTxtToFile("Waypoint_" + String.valueOf(i) + ": " + String.valueOf(waypointList.get(i).coordinate.getLatitude()) + "\t" + String.valueOf(waypointList.get(i).coordinate.getLongitude()) + "\t" + String.valueOf(waypointList.get(i).altitude),
@@ -612,6 +617,21 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                 break;
             }
             case R.id.bt_stop:{
+                TimeStampString = java.text.DateFormat.getDateTimeInstance().format(new Date());
+                tool.writeTxtToFile("\nProject finish time: " + TimeStampString, filePath, fileName);
+                tool.writeTxtToFile("Drone status info:\n",filePath,fileName);
+                tool.writeTxtToFile("Battery_info: "+String.valueOf(droneStatus.batteryPercentage)+
+                                "\nEstimate battery left: "+String.valueOf(droneStatus.batteryPrecentageRemian)+
+                                "\nSatellite count: "+String.valueOf(droneStatus.satelliteCount)+
+                                "\nSpeed_info: "+String.valueOf(df.format(droneStatus.droneSpeed))+
+                                "\nSpeed set: "+String.valueOf(droneStatus.plannedSpeed)+
+                                "\nprePlannedSpeed set: "+String.valueOf(droneStatus.prePlannedSpeed)+
+                                "\nDrone current location: "+String.valueOf(droneStatus.droneLatitude)+","+String.valueOf(droneStatus.droneLongtitude)+
+                                "\nDrone current Height: "+String.valueOf(df.format(droneStatus.droneHeight))+
+                                "\nDrone heading : "+ String.valueOf(droneStatus.droneHeading)+
+                                "\nDrone home location: "+String.valueOf(droneStatus.homeLatitude)+","+String.valueOf(droneStatus.homeLongtitude)+
+                                "\nOverlap set: "+ String.valueOf(droneStatus.overlapRatio),
+                        filePath, fileName);
                 stopWaypointMission();
                 break;
             }
