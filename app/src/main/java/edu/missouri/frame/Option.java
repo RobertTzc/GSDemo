@@ -12,8 +12,8 @@ public class Option {
     public static Point[] vertices ;
     public static double overlap;
     public static double energyPercnetRemaining;
-    public static double minCruiseAltitude = 10;
     public static int cruiseSpeed;
+    public static double minCruiseAltitude = 10;
     public static double maxAltitude = 100;
     public static double tiltAngle = 55.0;
     public static double accelaration = 1.0;

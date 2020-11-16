@@ -96,26 +96,10 @@ public class PlowDrone extends Drone {
             }
         }
 
-//         There's usually a remainder...
-//        Point iUp = poly.top(lastx - imageWidth/2.0);
-//        Point iDown = poly.bottom(lastx -imageWidth/2.0);
-//
-//        if(iUp != null && iDown != null) {
-//            double yUp = iUp.y() - imageWidth/2.0;
-//            double yDown = iDown.y()+ imageWidth/2.0;
-//            if (i % 2 == 0) {
-//                result.add(new Point(lastx, yUp + imageHeight/2.0, alt));
-//                result.add(new Point(lastx, yDown - imageHeight/2.0, alt));
-//            } else {
-//                result.add(new Point(lastx, yDown - imageHeight/2.0, alt));
-//                result.add(new Point(lastx, yUp + imageHeight/2.0, alt));
-//            }
-//        }
-
-//        if(result.isEmpty()) {
-//            result.add(new Point(poly.leftmost().x(),  upsideDown? poly.upmost().y() : poly.downmost().y()));
-//            result.add(new Point(poly.rightmost().x(), upsideDown? poly.downmost().y() : poly.upmost().y()));
-//        }
+        if(result.isEmpty()) {
+            result.add(new Point(poly.leftmost().x(),  upsideDown? poly.upmost().y() : poly.downmost().y()));
+            result.add(new Point(poly.rightmost().x(), upsideDown? poly.downmost().y() : poly.upmost().y()));
+        }
 
         Point center = poly.center();
         return rotateAll(result, -theta, new Point(center.x(), center.y(), cruiseAltitude));

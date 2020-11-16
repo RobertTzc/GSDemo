@@ -108,6 +108,7 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
     public ArrayList<GePoint> cornerListGeo = new ArrayList<GePoint>();
     private float droneYaw = 0;
     private Marker droneMarker = null;
+    private Marker homeMarker = null;
 
     private float altitude = 100.0f;
     private float mSpeed = 5.0f;
@@ -336,6 +337,8 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                     droneStatus.droneSpeed = sqrt(Math.pow(djiFlightControllerCurrentState.getVelocityX(),2)+Math.pow(djiFlightControllerCurrentState.getVelocityY(),2));
                     droneStatus.droneHeading = mFlightController.getCompass().getHeading();
                     droneStatus.satelliteCount= djiFlightControllerCurrentState.getSatelliteCount();
+                    droneStatus.homeLatitude = djiFlightControllerCurrentState.getHomeLocation().getLatitude();
+                    droneStatus.homeLongtitude = djiFlightControllerCurrentState.getHomeLocation().getLongitude();
                     drawDroneInfo();
                 }
             });
@@ -445,29 +448,35 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
     public void displayDroneStatus(){
         TextView tv_droneInfo;
         tv_droneInfo = findViewById(R.id.tv_droneInfo);
-        tv_droneInfo.setText("Battery_info: "+String.valueOf(droneStatus.batteryPercentage)+"" +
+        tv_droneInfo.setText("Battery_info: "+String.valueOf(droneStatus.batteryPercentage)+"%" +
                 "\nSatellite count: "+String.valueOf(droneStatus.satelliteCount)+
                 "\nSpeed_info: "+String.valueOf(df.format(droneStatus.droneSpeed))+"m/s"+
                 "\nSpeed set: "+String.valueOf(droneStatus.plannedSpeed)+"m/s"+
                 "\nHeight: "+String.valueOf(df.format(droneStatus.droneHeight))+"m"+
-                "\nOverlap set: "+ String.valueOf(droneStatus.overlapRatio)+
-                "\nDrone heading : "+ String.valueOf(droneStatus.droneHeading)
+                "\nOverlap set: "+ String.valueOf(droneStatus.overlapRatio)+"%"+
+                "\nDrone heading : "+ String.valueOf(droneStatus.droneHeading)+"deg"+
+                "\nbattery estimate: "+String.valueOf(droneStatus.batteryPrecentageRemian)+"%"
         );
     }
     private void drawDroneInfo(){
-        LatLng pos = new LatLng(droneStatus.droneLatitude, droneStatus.droneLongtitude);
+        LatLng dronePos = new LatLng(droneStatus.droneLatitude, droneStatus.droneLongtitude);
+        LatLng homePos = new LatLng(droneStatus.homeLatitude,droneStatus.homeLongtitude);
         //Create MarkerOptions object
-        final MarkerOptions droneMarkerOptions = new MarkerOptions();
-        droneMarkerOptions.position(pos);
+        final MarkerOptions droneMarkerOptions = new MarkerOptions().position(dronePos);
+        final MarkerOptions homeMarkerOptions = new MarkerOptions().position(homePos);
         droneMarkerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.drone_icon)).rotation((droneYaw)).anchor(0.5f,0.5f);
+        homeMarkerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.drone_home_icon)).anchor(0.5f,0.5f);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 displayDroneStatus();
+                if (homeMarker != null){
+                    homeMarker.remove();
+                }
                 if (droneMarker != null) {
                     droneMarker.remove();
                 }
-
+                homeMarker = gMap.addMarker(homeMarkerOptions);
                 if (checkGpsCoordination(droneStatus.droneLatitude, droneStatus.droneLongtitude)) {
                     droneMarker = gMap.addMarker(droneMarkerOptions);
                 }
@@ -512,6 +521,7 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
             }
             case R.id.bt_generate_path:{
                 drawDroneInfo();
+                droneStatus.plannedSpeed = Math.round(mSpeed);
                 if (cb_show.isChecked()==false){
                     setResultToToast("please generate area first");
                     break;
@@ -519,7 +529,7 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                 setResultToToast("Generating Waypoint: "+String.valueOf(overlapratio/100.0)+"%");
 
                 try {
-                    pathCalculation.UpdateBounds(cornerListGeo, cornerListGeo.get(0), edgeAltitudeList.get(0), (overlapratio/100.0),1.0,(int)mSpeed);
+                    pathCalculation.UpdateBounds(cornerListGeo, edgeAltitudeList.get(0),cornerListGeo.get(0),edgeAltitudeList.get(0),droneStatus);
                 } catch(Exception e)
                 {
                     setResultToToast("Error "+e.toString());
@@ -528,10 +538,11 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                 wpGeo = (ArrayList<GePoint>) pathCalculation.getWaypoints();
                 wpIsTurn = (ArrayList<Boolean>) pathCalculation.getIsTurning();
                 wpAltitude = (ArrayList<Double>) pathCalculation.getAltitudes();
+                droneStatus.batteryPrecentageRemian =100*pathCalculation.getEnergyPercentRemainingAfterPlan();
                 DisplayWaypoint();
                 setResultToToast("Num_waypoint:"+String.valueOf(wpGeo.size()));
                 PolylineOptions wpTrace = new PolylineOptions();
-                double distance = 5;
+                double distance=0;
                 for (int i = 0;i<wpGeo.size();i++)
                 {
                     if(wpIsTurn.get(i)==false && wpIsTurn.get(i+1)==false) {
@@ -542,7 +553,7 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                 }
                 //initial first waypoint to make faster to the mission spot
                 Waypoint startWaypoint = new Waypoint(droneStatus.droneLatitude, droneStatus.droneLongtitude,Float.parseFloat(wpAltitude.get(0).toString()));
-                startWaypoint.speed = 10.0f;
+                startWaypoint.speed = droneStatus.prePlannedSpeed;
                 waypointList.add(startWaypoint);
                 for (int i = 0;i<wpGeo.size();i++) {
                     if (wpIsTurn.get(i)) {
@@ -554,7 +565,7 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                         }
                         else
                             mWaypoint.shootPhotoDistanceInterval= 0;
-                        mWaypoint.speed = mSpeed;
+                        mWaypoint.speed = droneStatus.plannedSpeed;
                         waypointList.add(mWaypoint);
                     }
 
@@ -597,7 +608,6 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                     tool.writeTxtToFile("Waypoint_" + String.valueOf(i) + ": " + String.valueOf(waypointList.get(i).coordinate.getLatitude()) + "\t" + String.valueOf(waypointList.get(i).coordinate.getLongitude()) + "\t" + String.valueOf(waypointList.get(i).altitude),
                             filePath, fileName);
                 }
-                droneStatus.plannedSpeed = Math.round(waypointList.get(0).speed);
                 startWaypointMission();
                 break;
             }

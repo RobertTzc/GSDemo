@@ -127,6 +127,13 @@ public class Line {
         return Arrays.asList(result);
     }
 
+    public Collection<? extends Point> getPoints() {
+        Point[] result = new Point[2];
+        result[0] = a();
+        result[1] = b();
+        return Arrays.asList(result);
+    }
+
     public Point midpoint() {
         return new Point((a.x()+b.x())/2.0, (a.y() + b.y())/2.0);
     }
@@ -197,6 +204,7 @@ public class Line {
             j++;
         }
         return result;
+
     }
 
     @Override

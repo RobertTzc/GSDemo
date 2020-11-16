@@ -2,7 +2,7 @@ package edu.missouri.drone.static_height;
 
 import edu.missouri.frame.Area;
 
-public class CombinatoryJiaoDrone extends JiaoDrone{
+public class CombinatoryJiaoDrone extends JiaoDrone {
     public CombinatoryJiaoDrone(Area area) {
         super(area);
     }

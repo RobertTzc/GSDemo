@@ -5,6 +5,7 @@ import org.apache.commons.math3.special.Erf;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -162,30 +163,6 @@ public class ImprovedDirectDrone extends Drone {
         return result;
     }
 
-//    public void reroute(double energy) {
-//        Option.cruiseAltitude = Option.minCruiseAltitude;
-//        thoroughness = 1.0;
-//        reroute();
-//        while(energyUsed() > energy && Option.cruiseAltitude < Option.maxAltitude) {
-//            Option.cruiseAltitude += 1;
-//            thoroughness -= 1.0/Option.maxAltitude;
-//            reroute();
-//        }
-//    }
-    //find the lowest flying attitude that cover the whole area within energy buget
-//    public void reroute(Area area, double energyBudget) {
-//        Option.cruiseAltitude = Option.minCruiseAltitude;
-//        thoroughness = 1.0;
-//        reroute(area);
-//        double e = energyUsed();
-//        while(e > energyBudget && Option.cruiseAltitude < Option.maxAltitude) {
-//            Option.cruiseAltitude += 1;
-//            thoroughness -= 1.0/Option.maxAltitude;
-//            reroute(area);
-//            e = energyUsed();
-//        }
-//
-//    }
 
     public void reroute(Area area, double energyBudget) {
         thoroughness = 1.0;
@@ -262,10 +239,31 @@ public class ImprovedDirectDrone extends Drone {
         return sum;
     }
 
+    public int getOptimalSpeed(int planSpeed,double energyBudget) {
+        Map<Integer, Double> maps = new LinkedHashMap<>();
+        for (int i = 0; i < Drone.MAX_SPEED + 1; i++) {
+            maps.put(i, energyUsed(i));
+        }
+        Iterator<Map.Entry<Integer, Double>> entries = maps.entrySet().iterator();
+        int optimalSpeed = planSpeed;
+        double minimumEnergy = 10000000000000000.0;
+        while (entries.hasNext()) {
+            Map.Entry<Integer, Double> entry = entries.next();
+            if (entry.getValue() < minimumEnergy) {
+                minimumEnergy = entry.getValue();
+                optimalSpeed = entry.getKey();
+            }
+        }
+        if (energyBudget< minimumEnergy){
+            optimalSpeed = 0;
+        }
+        return optimalSpeed;
+    }
+
     // Energy calculations
     // credit to DiFranco and Buttazzo
-    public double energyUsed() {
-        double cruiseSpeed = Option.cruiseSpeed;
+    public double energyUsed(int speed) {
+        int cruiseSpeed = speed;
         List<Point> currentPoints = new ArrayList<>(PlowDrone.plan(getPolygon(), getLocation()));
         Point[] finalPoints = new Point[currentPoints.size()];
         for (int i=0;i<currentPoints.size();i++){
@@ -284,7 +282,7 @@ public class ImprovedDirectDrone extends Drone {
         return result;
     }
 
-    public static double legEnergy(Line path, double startSpeed, double cruiseSpeed, double endSpeed) {
+    public static double legEnergy(Line path, double startSpeed, int cruiseSpeed, double endSpeed) {
         double dist = path.length2D();
 
         // These calculations are made for a drone with max speed 15 m/s
@@ -305,9 +303,9 @@ public class ImprovedDirectDrone extends Drone {
         double result =  EFFICIENCY_FACTOR * accEnergy(startSpeed, cruiseSpeed)
                 + EFFICIENCY_FACTOR * decEnergy(cruiseSpeed,endSpeed)
                 + EFFICIENCY_FACTOR * cruiseEnergy(dist - borderDist, cruiseSpeed);
-//        System.out.println("aenergy:"+accEnergy(startSpeed, cruiseSpeed));
-//        System.out.println("cenergy:"+cruiseEnergy(dist - borderDist, cruiseSpeed));
-//        System.out.println("denergy:"+decEnergy(cruiseSpeed,endSpeed));
+        System.out.println("aenergy:"+accEnergy(startSpeed, cruiseSpeed));
+        System.out.println("cenergy:"+cruiseEnergy(dist - borderDist, cruiseSpeed));
+        System.out.println("denergy:"+decEnergy(cruiseSpeed,endSpeed));
 //        System.out.println("start speed:"+startSpeed);
 //        System.out.println("crusie speed:"+cruiseSpeed);
 //        System.out.println("end speed:"+endSpeed);
@@ -315,7 +313,7 @@ public class ImprovedDirectDrone extends Drone {
 
         if(path.dz() < 0) result += 210 * path.dz() / DESCENT_SPEED * EFFICIENCY_FACTOR;
         if(path.dz() > 0) result += 250 * path.dz() / ASCENT_SPEED  * EFFICIENCY_FACTOR;
-//        System.out.println(result);
+        System.out.println(result);
         return result;
     }
 

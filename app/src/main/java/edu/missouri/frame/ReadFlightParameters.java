@@ -1,12 +1,13 @@
 package edu.missouri.frame;
 
+import com.dji.GSDemo.PathPlanning.DroneStatus;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import edu.missouri.drone.Drone;
 import edu.missouri.drone.variable_height.ImprovedDirectDrone;
 import edu.missouri.geom.CordtoGPS;
 import edu.missouri.geom.Point;
@@ -14,22 +15,43 @@ import edu.missouri.geom.SortVertise;
 import edu.missouri.geom.csvCreate;
 
 public class ReadFlightParameters {
-
+    public int plannedSpeed,prePlannedSpeed;
+    public double overlap;
+    public double height;
+    public double energyPercnetRemaining;
+    public List<GePoint> GPSvertices;
+    public GePoint GPSstartPoint;
 
     public List<GePoint> wayPoints;
     public List<Double> altitudes;
     public List<Boolean> isTurnings;
-    public double energyRemaining;
     public double horizonGap;
     public double verticalGap;
+    public int energyPercentRemainingAfterPlan;
+    public double reconmendSpeed;
+    public boolean ifEnergyEnough;
 
     public Area area;
-    public Drone drone;
+    public ImprovedDirectDrone drone;
 
     public ReadFlightParameters() {
     }
+    public void UpdateBounds(List<GePoint> GPSvertices, double height, GePoint GPSstartPoint, double startPointHeightdouble, DroneStatus droneStatus)
+    {
+        this.GPSstartPoint = GPSstartPoint;
+        this.GPSvertices = GPSvertices;
+        this.height = height;
+        this.overlap = (float)droneStatus.overlapRatio/100;
+        this.energyPercnetRemaining = (float)droneStatus.batteryPercentage/100;
+        this.plannedSpeed = droneStatus.plannedSpeed;
+        this.prePlannedSpeed = droneStatus.prePlannedSpeed;
+        /***
+         * need to be done:
+         * planned speed is the speed for coverage
+         * prePlannedSpeed is used to reach the first point of the coverage area, its preset as 15m/s could be modified, stored in dronestatus, should be counted in the energy model
+         *
+         */
 
-    public void UpdateBounds(List<GePoint> GPSvertices, GePoint GPSstartPoint, double height, double overlap, double energyPercnetRemaining, int speed) {
 
         int verticesNum = GPSvertices.size();
         List<GePoint> GPSverticesSorted = new SortVertise(GPSvertices).getCounterClockwiseVertices();
@@ -38,17 +60,18 @@ public class ReadFlightParameters {
             List<Point> points = new ArrayList<Point>();
             verticesTmp[i] = GPSToCord(GPSverticesSorted.get(i), GPSstartPoint);
         }
-        new Option().setParameters(height, GPSstartPoint, verticesTmp, overlap,energyPercnetRemaining,speed);
+        new Option().setParameters(height, GPSstartPoint, verticesTmp, overlap,energyPercnetRemaining,plannedSpeed);
         planPath();
     }
+
 
 
     public void planPath() {
         area = Area.readPolygonFromCSV();
         drone = new ImprovedDirectDrone(area);
-        Map<Point, Boolean> maps = ((ImprovedDirectDrone) drone).routes();
-        double energyBudget = drone.TOTAL_ENERGY * (Option.energyPercnetRemaining-0.2);//20% alarm
-        double energyUse = ((ImprovedDirectDrone) drone).energyUsed();
+        Map<Point, Boolean> maps = drone.routes();
+        double energyBudget = drone.TOTAL_ENERGY * (Option.energyPercnetRemaining-20)/100.0;//20% alarm
+        double energyUse = drone.energyUsed(plannedSpeed);
         Iterator<Map.Entry<Point, Boolean>> entries = maps.entrySet().iterator();
         List<Point> waypoints = new ArrayList<>();
         List<Point> turningPoints = new ArrayList<>();
@@ -72,23 +95,23 @@ public class ReadFlightParameters {
             isTurnings.add(coordinate.isTurning());
 
         }
-        double energyRemaining;
         if (energyUse>energyBudget){
-            energyRemaining = 0.0;
+            this.energyPercentRemainingAfterPlan = 0;
+            this.ifEnergyEnough = false;
+            this.reconmendSpeed = drone.getOptimalSpeed(plannedSpeed,energyBudget);
         }
         else {
-            energyRemaining = energyUse;
+            this.energyPercentRemainingAfterPlan = (int) Math.round(100*(drone.TOTAL_ENERGY-energyUse)/drone.TOTAL_ENERGY);
+            this.ifEnergyEnough = true;
+            this.reconmendSpeed = plannedSpeed;
         }
         this.altitudes = heights;
         this.isTurnings = isTurnings;
         this.wayPoints = wayPoints;
-        this.energyRemaining = energyRemaining;
         this.horizonGap = (1-Option.overlap)*Option.defaultImageHeight();
         this.verticalGap = (1-Option.overlap)*Option.defaultImageWidth();
-        System.out.println(horizonGap);
-        System.out.println(verticalGap);
-
-
+        System.out.println(energyPercentRemainingAfterPlan);
+        System.out.println(reconmendSpeed);
     }
 
     public Point GPSToCord(GePoint target, GePoint standard) {
@@ -99,14 +122,16 @@ public class ReadFlightParameters {
     public List<GePoint> getWaypoints() {
         return wayPoints;
     }
-
     public List<Double> getAltitudes() {
         return altitudes;
     }
-
     public List<Boolean> getIsTurning() {
         return isTurnings;
     }
+    public int getEnergyPercentRemainingAfterPlan(){return energyPercentRemainingAfterPlan;}
+    public double getReconmendSpeed() {return reconmendSpeed;}
+    public boolean getIfEnergyEnough() {return ifEnergyEnough;}
+
 
     public static List<GePoint> splitPointString(String pointsString) {
         List<GePoint> GPSPoints = new ArrayList<GePoint>();
@@ -118,6 +143,7 @@ public class ReadFlightParameters {
         }
         return GPSPoints;
     }
+
 
     public static void main(String[] args) {
 

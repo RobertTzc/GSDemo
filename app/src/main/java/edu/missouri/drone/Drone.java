@@ -21,7 +21,7 @@
      public static final double MAX_TRAVEL_DISTANCE      = 12874.8;                           // meters
      public static final double ASCENT_SPEED             = 5.0;                               // meters per second
      public static final double DESCENT_SPEED            = 3.0;                               // meters per second
-     public static final double MAX_SPEED                = 40;                                // meters per second
+     public static final double MAX_SPEED                = 10;                                // meters per second
      public static final double MAX_FLIGHT_TIME          = 1620;                              // seconds
      public static final double REALISTIC_FLIGHT_TIME    = 1260;                              // seconds
      public static final double TOTAL_ENERGY             = 157183.2;                          // joules
@@ -162,7 +162,16 @@
      public static List<Point> subdivide(List<Point> points) {
          double overlap = Option.overlap;
          List<Point> result = new ArrayList<>();
-         for(Line l: Line.arrayFromPoints(points.toArray(new Point[0]))) result.addAll(l.toSubpoints(Option.defaultImageHeight()));
+         int j = 0;
+         for(Line l: Line.arrayFromPoints(points.toArray(new Point[0]))){
+             if(j%2 == 0){
+                 result.addAll(l.toSubpoints(Option.defaultImageHeight()));
+             }
+             else {
+                 result.addAll(l.getPoints());
+             }
+             j++;
+         }
          result.add(points.get(points.size()-1));
          return result;
      }
