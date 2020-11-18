@@ -119,11 +119,12 @@ public class Line {
         double scale = new_length/length();
         double dxi = dx()*scale/new_n;
         double dyi = dy()*scale/new_n;
-        Point[] result = new Point[new_n];
-
-        for(int i = 0; i < new_n; i++) {
+        Point[] result = new Point[new_n+1];
+        result[0] = new Point(a.x(), a.y());
+        for(int i = 1; i < new_n; i++) {
             result[i] = new Point(a.x() + i*dxi, a.y() + i*dyi);
         }
+        result[new_n] = new Point(b.x(), b.y());
         return Arrays.asList(result);
     }
 

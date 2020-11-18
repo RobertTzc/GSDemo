@@ -30,7 +30,7 @@
      // The Mavic is a much nicer drone - weighs half as much with higher quality motors and
      // This one is calculated such that the total travel distance given by DJI
      // costs about the total energy of the drone at the optimal speed (15.5 m/s, apparently)
-     public static final double EFFICIENCY_FACTOR  = 1.0;
+     public static final double EFFICIENCY_FACTOR  = 0.7;
 
 
      private Point location;
@@ -167,12 +167,9 @@
              if(j%2 == 0){
                  result.addAll(l.toSubpoints(Option.defaultImageHeight()));
              }
-             else {
-                 result.addAll(l.getPoints());
-             }
              j++;
          }
-         result.add(points.get(points.size()-1));
+//         result.add(points.get(points.size()-1));
          return result;
      }
 

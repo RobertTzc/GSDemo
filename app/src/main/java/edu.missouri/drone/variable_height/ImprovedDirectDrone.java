@@ -274,10 +274,10 @@ public class ImprovedDirectDrone extends Drone {
         double result = 0.0;
         Line toLine = new Line(Option.startPoint,finalPoints[0]);
         Line backLine = new Line(finalPoints[finalPoints.length-1],Option.endPoint);
-        System.out.println(toLine.a());
-        System.out.println(toLine.b());
-        System.out.println(backLine.a());
-        System.out.println(backLine.b());
+//        System.out.println(toLine.a());
+//        System.out.println(toLine.b());
+//        System.out.println(backLine.a());
+//        System.out.println(backLine.b());
         result += legEnergy(toLine, 0 , Option.toandBackSpeed, 0 );
         for(int i = 0; i < lines.length; i++) {
             // We could probably use some linear algebra to avoid the trig functions here,

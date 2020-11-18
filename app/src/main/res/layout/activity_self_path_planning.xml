@@ -149,6 +149,7 @@
                 android:min="0"
                 android:max="100"
                 android:thumbTint="#000000"
+                android:progress="20"
                 android:id="@+id/sb_overlapratio"/>
         </LinearLayout>
 
@@ -160,4 +161,29 @@
         android:layout_height="wrap_content"
         android:layout_marginRight="5dp"
         android:text="start" />
+
+    <Button
+        android:id="@+id/bt_autocamera"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="50dp"
+        android:text="camer aauto" />
+
+    <Button
+        android:id="@+id/bt_set1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="100dp"
+        android:text="Shutter prio" />
+    <Button
+        android:id="@+id/bt_set2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="150dp"
+        android:text="Manual" />
+
+
 </RelativeLayout>

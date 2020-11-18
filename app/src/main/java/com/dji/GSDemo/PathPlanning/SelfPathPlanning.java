@@ -52,6 +52,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import dji.common.battery.BatteryState;
+import dji.common.camera.SettingsDefinitions;
 import dji.common.camera.SystemState;
 import dji.common.error.DJIError;
 import dji.common.flightcontroller.FlightControllerState;
@@ -84,6 +85,7 @@ import dji.sdk.useraccount.UserAccountManager;
 import edu.missouri.frame.GePoint;
 import edu.missouri.frame.ReadFlightParameters;
 
+import static dji.common.camera.SettingsDefinitions.ShutterSpeed.SHUTTER_SPEED_1_1600;
 import static edu.missouri.frame.GPStoCord.getCord;
 import static edu.missouri.frame.ReadFlightParameters.splitPointString;
 import static java.lang.Math.sqrt;
@@ -120,6 +122,7 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
     public static WaypointMission.Builder waypointMissionBuilder;
     private FlightController mFlightController;
     private Battery mBatteryStatus;
+    private Camera mCamera;
     private WaypointMissionOperator instance;
     private WaypointMissionFinishedAction mFinishedAction = WaypointMissionFinishedAction.GO_HOME;
     private WaypointMissionHeadingMode mHeadingMode = WaypointMissionHeadingMode.AUTO;
@@ -189,6 +192,72 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
         cb_show = findViewById(R.id.cb_show);
         sb_overlapratio = findViewById(R.id.sb_overlapratio);
         tv_overlapratio = findViewById(R.id.tv_overlapratio);
+
+        findViewById(R.id.bt_autocamera).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mCamera.setExposureMode(SettingsDefinitions.ExposureMode.PROGRAM, new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(DJIError djiError) {
+                        if (djiError!=null)
+                            setResultToToast("set camera auto failed");
+                    }
+                });
+            }
+        });
+        findViewById(R.id.bt_set1).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mCamera.setExposureMode(SettingsDefinitions.ExposureMode.SHUTTER_PRIORITY, new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(DJIError djiError) {
+                        if (djiError!=null)
+                            setResultToToast("set camera shutter priority failed");
+                    }
+                });
+                mCamera.setShutterSpeed(SHUTTER_SPEED_1_1600, new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(DJIError djiError) {
+                        if (djiError!=null)
+                            setResultToToast("set camera shutter 1/1600 failed");
+                    }
+                });
+            }
+        });
+        findViewById(R.id.bt_set2).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mCamera.setExposureMode(SettingsDefinitions.ExposureMode.MANUAL, new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(DJIError djiError) {
+                        if (djiError!=null)
+                            setResultToToast("set camera Manual failed");
+                    }
+                });
+                mCamera.setShutterSpeed(SHUTTER_SPEED_1_1600, new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(DJIError djiError) {
+                        if (djiError!=null)
+                            setResultToToast("set camera shutter 1/1600 failed");
+                    }
+                });
+                mCamera.setISO(SettingsDefinitions.ISO.ISO_1600, new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(DJIError djiError) {
+                        if (djiError!=null)
+                            setResultToToast("set camera ISO 1600 failed");
+                    }
+                });
+                mCamera.setAperture(SettingsDefinitions.Aperture.F_3_DOT_2, new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(DJIError djiError) {
+                        if (djiError!=null)
+                            setResultToToast("set Aperture 3.2 failed");
+                    }
+                });
+            }
+        });
+
 
         locate.setOnClickListener(this);
         clear.setOnClickListener(this);
@@ -271,6 +340,8 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
         IntentFilter filter = new IntentFilter();
         filter.addAction(DJIDemoApplication.FLAG_CONNECTION_CHANGE);
         registerReceiver(mReceiver, filter);
+
+        mCamera = DJIDemoApplication.getCameraInstance();
         initUI();
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -520,8 +591,9 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                 break;
             }
             case R.id.bt_generate_path:{
-                drawDroneInfo();
+
                 droneStatus.plannedSpeed = Math.round(mSpeed);
+                drawDroneInfo();
                 if (cb_show.isChecked()==false){
                     setResultToToast("please generate area first");
                     break;
@@ -538,7 +610,22 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                 wpGeo = (ArrayList<GePoint>) pathCalculation.getWaypoints();
                 wpIsTurn = (ArrayList<Boolean>) pathCalculation.getIsTurning();
                 wpAltitude = (ArrayList<Double>) pathCalculation.getAltitudes();
-                droneStatus.batteryPrecentageRemian =100*pathCalculation.getEnergyPercentRemainingAfterPlan();
+                //add check if duplicate wp exist
+                ArrayList<GePoint> pre_wp = new ArrayList<>();
+                List<Integer> toremove = new ArrayList<>();
+                for  (int i = 0;i<wpGeo.size();i++){
+                    if (pre_wp.contains(wpGeo.get(i)))
+                        toremove.add(i);
+                    else
+                        pre_wp.add(wpGeo.get(i));
+                }
+                for (int i= 0 ; i<toremove.size();i++){
+                    wpGeo.remove(toremove.get(i));
+                    wpIsTurn.remove(toremove.get(i));
+                    wpAltitude.remove(toremove.get(i));
+                }
+
+                droneStatus.batteryPrecentageRemian =pathCalculation.getEnergyPercentRemainingAfterPlan();
                 DisplayWaypoint();
                 setResultToToast("Num_waypoint:"+String.valueOf(wpGeo.size()));
                 PolylineOptions wpTrace = new PolylineOptions();
@@ -617,21 +704,6 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                 break;
             }
             case R.id.bt_stop:{
-                TimeStampString = java.text.DateFormat.getDateTimeInstance().format(new Date());
-                tool.writeTxtToFile("\nProject finish time: " + TimeStampString, filePath, fileName);
-                tool.writeTxtToFile("Drone status info:\n",filePath,fileName);
-                tool.writeTxtToFile("Battery_info: "+String.valueOf(droneStatus.batteryPercentage)+
-                                "\nEstimate battery left: "+String.valueOf(droneStatus.batteryPrecentageRemian)+
-                                "\nSatellite count: "+String.valueOf(droneStatus.satelliteCount)+
-                                "\nSpeed_info: "+String.valueOf(df.format(droneStatus.droneSpeed))+
-                                "\nSpeed set: "+String.valueOf(droneStatus.plannedSpeed)+
-                                "\nprePlannedSpeed set: "+String.valueOf(droneStatus.prePlannedSpeed)+
-                                "\nDrone current location: "+String.valueOf(droneStatus.droneLatitude)+","+String.valueOf(droneStatus.droneLongtitude)+
-                                "\nDrone current Height: "+String.valueOf(df.format(droneStatus.droneHeight))+
-                                "\nDrone heading : "+ String.valueOf(droneStatus.droneHeading)+
-                                "\nDrone home location: "+String.valueOf(droneStatus.homeLatitude)+","+String.valueOf(droneStatus.homeLongtitude)+
-                                "\nOverlap set: "+ String.valueOf(droneStatus.overlapRatio),
-                        filePath, fileName);
                 stopWaypointMission();
                 break;
             }
@@ -717,7 +789,6 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
     }
 
     private void startWaypointMission(){
-        droneStatus.plannedSpeed = Math.round(edgeAltitudeList.get(0));
         getWaypointMissionOperator().startMission(new CommonCallbacks.CompletionCallback() {
             @Override
             public void onResult(DJIError error) {
