@@ -24,6 +24,7 @@ import android.widget.ToggleButton;
 import com.dji.GSDemo.GoogleMap.R;
 
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.Date;
 
 import dji.common.battery.BatteryState;
@@ -43,11 +44,12 @@ import dji.sdk.flightcontroller.FlightController;
 import dji.sdk.products.Aircraft;
 import dji.sdk.useraccount.UserAccountManager;
 
+import static dji.common.camera.SettingsDefinitions.ShutterSpeed.SHUTTER_SPEED_1_1000;
 import static dji.common.camera.SettingsDefinitions.ShutterSpeed.SHUTTER_SPEED_1_1600;
 import static dji.common.camera.SettingsDefinitions.ShutterSpeed.find;
 import static java.lang.Math.sqrt;
 
-public class cameraView extends AppCompatActivity implements TextureView.SurfaceTextureListener, NumberPicker.OnValueChangeListener, CommonCallbacks.CompletionCallback, CommonCallbacks.CompletionCallbackWith<SettingsDefinitions.ShutterSpeed> {
+public class cameraView extends AppCompatActivity implements TextureView.SurfaceTextureListener, NumberPicker.OnValueChangeListener, CommonCallbacks.CompletionCallback {
 
     private static final String TAG = FpvActivity.class.getName();
     protected VideoFeeder.VideoDataListener mReceivedVideoDataListener = null;
@@ -62,19 +64,33 @@ public class cameraView extends AppCompatActivity implements TextureView.Surface
     private FlightController mFlightController;
     private Battery mBatteryStatus;
     private RadioGroup rg_cameraMode;
+    int option = 1;
     DroneStatus droneStatus = new DroneStatus();
     NumberPicker np_shutter,np_ISO,np_aperture,np_exposureCompensation;
-    String[] ISOValue = new String[]{"50","100","200","400","800","1600","3200","6400","12800","25600"};
-    String[] ShutterValue = new String[]{"1_20000","1_16000","1_12800","1_10000","1_8000","1_6400","1_6000","1_5000","1_4000","1_3200","1_3000","1_2500","1_2000","1_1600","1_1500",
-            "1_1250","1_1000","1_800","1_725","1_640","1_500","1_400","1_350","1_320","1_250","1_240","1_200","1_180","1_160","1_125","1_120","1_100","1_90",
-            "1_80","1_60","1_50","1_40","1_30","1_25","1_20","1_15","1_12_DOT_5","1_10","1_8","1_6_DOT_25","1_5","1_4","1_3","1_2_DOT_5","1_2",
-            "1_1_DOT_67","1_1_DOT_25","1","1_DOT_3","1_DOT_6","2","2_DOT_5","3","3_DOT_2","4","5","6","7","8","9","10","13","15","20","25","3"};
-    String[] ApertureValue = new String[]{"F_1_DOT_7","F_1_DOT_8","F_2","F_2_DOT_2","F_2_DOT_5","F_2_DOT_6","F_2_DOT_8","F_3_DOT_2","F_3_DOT_4","F_3_DOT_5","F_4","F_4_DOT_5","F_4_DOT_8","F_5","F_5_DOT_6",
-            "F_6_DOT_3","F_6_DOT_8","F_7_DOT_1","F_8","F_9","F_9_DOT_6","F_10","F_11","F_13","F_14","F_16","F_18","F_19","F_20","F_22"};
-    String[] ExposureValue = new String[]{"N_5_0","N_4_7","N_4_3","N_4_0","N_3_7","N_3_3","N_3_0","N_2_7","N_2_3","N_2_0","N_1_7","N_1_3","N_1_0","N_0_7","N_0_3","N_0_0",
-            "P_0_3","P_0_7","P_1_0","P_1_3","P_1_7","P_2_0","P_2_3","P_2_7","P_3_0","P_3_3","P_3_7","P_4_0","P_4_3","P_4_7","P_5_0"};
-    int ShutterSet,ISOSet,ApertureSet,ExposureSet;
 
+    String[] ISOValue = new String[]{"50","100","200","400","800","1600","3200","6400","12800","25600"};
+    String[] ShutterValue = new String[]{"1/20000","1/16000","1/12800","1/10000","1/8000","1/6400","1/6000","1/5000","1/4000","1/3200","1/3000","1/2500","1/2000","1/1600","1/1500",
+            "1/1250","1/1000","1/800","1/725","1/640","1/500","1/400","1/350","1/320","1/250","1/240","1/200","1/180","1/160","1/125","1/120","1/100","1/90",
+            "1/80","1/60","1/50","1/40","1/30","1/25","1/20","1/15","1/12.5","1/10","1/8","1/6.25","1/5","1/4","1/3","1/2.5","1/2",
+            "1/1.67","1/1.25","1","1/3","1/6","2","2/5","3","3/2","4","5","6","7","8","9","10","13","15","20","25","3"};
+    String[] ApertureValue = new String[]{"F_1.7","F_1.8","F_2","F_2.2","F_2.5","F_2.6","F_2.8","F_3.2","F_3.4","F_3.5","F_4","F_4.5","F_4.8","F_5","F_5.6",
+            "F_6.3","F_6.8","F_7.1","F_8","F_9","F_9.6","F_10","F_11","F_13","F_14","F_16","F_18","F_19","F_20","F_22"};
+    String[] ExposureValue = new String[]{"-5.0","-4.7","-4.3","-4.0","-3.7","-3.3","-3.0","-2.7","-2.3","-2.0","-1.7","-1.3","-1.0","-0.7","-0.3","0.0",
+            "+0.3","+0.7","+1.0","+1.3","+1.7","+2.0","+2.3","+2.7","+3.0","+3.3","+3.7","+4.0","+4.3","+4.7","+5.0"};
+
+    String[] ISOValuePro = new String[]{"100","200","400","800","1600","3200","6400","12800"};
+    String[] ShutterValuePro = new String[]{"1/8000","1/6400","1/5000","1/4000","1/3200","1/2500","1/2000","1/1600","1/1250","1/1000","1/800","1/640","1/500","1/400","1/320","1/240","1/200","1/160",
+            "1/120","1/100","1/80","1/60","1/50","1/40","1/30","1/25","1/20","1/15","1/12.5","1/10","1/8","1/6.25","1/5","1/4","1/3","1/2.5","1/2","1/1.67","1/1.25","1","1.3","1.6","2","2.5","3","3.2",
+            "4","5","6","7","8"};
+    String[] ApertureValuePro = new String[]{"F_2.8","F_3.2","F_3.5","F_4","F_4.5","F_5","F_5.6","F_6.3","F_7.1","F_8","F_9","F_10","F_11"};
+    String[] ExposureValuePro = new String[]{"-3.0","-2.7","-2.3","-2.0","-1.7","-1.3","-1.0","-0.7","-0.3","0.0",
+            "+0.3","+0.7","+1.0","+1.3","+1.7","+2.0","+2.3","+2.7","+3.0"};
+    int ShutterSet,ISOSet,ApertureSet,ExposureSet;
+    SettingsDefinitions.ExposureMode cameraCurrentState;
+    SettingsDefinitions.ShutterSpeed currentShutterSpeed;
+    SettingsDefinitions.ISO currentISO;
+    SettingsDefinitions.Aperture currentAperture;
+    SettingsDefinitions.ExposureCompensation currentExposure;
     private static DecimalFormat df = new DecimalFormat("0.00");
     Tools tool = new Tools();
     @Override
@@ -84,7 +100,7 @@ public class cameraView extends AppCompatActivity implements TextureView.Surface
         setContentView(R.layout.activity_camera_view);
 
         handler = new Handler();
-
+        camera = DJIDemoApplication.getCameraInstance();
         initUI();
 
         // The callback for receiving the raw H264 video data for camera live view
@@ -98,21 +114,17 @@ public class cameraView extends AppCompatActivity implements TextureView.Surface
             }
         };
 
-        camera = DJIDemoApplication.getCameraInstance();
-
         if (camera != null) {
-
+            camera.setExposureMode(SettingsDefinitions.ExposureMode.PROGRAM, new CommonCallbacks.CompletionCallback() {
+                @Override
+                public void onResult(DJIError djiError) {
+                    setResultToToast("exposure set failed");
+                }
+            });
             camera.setSystemStateCallback(new SystemState.Callback() {
                 @Override
                 public void onUpdate(SystemState cameraSystemState) {
                     if (null != cameraSystemState) {
-
-                        int recordTime = cameraSystemState.getCurrentVideoRecordingTimeInSeconds();
-                        int minutes = (recordTime % 3600) / 60;
-                        int seconds = recordTime % 60;
-
-                        final String timeString = String.format("%02d:%02d", minutes, seconds);
-                        final boolean isVideoRecording = cameraSystemState.isRecording();
 
                         cameraView.this.runOnUiThread(new Runnable() {
 
@@ -127,13 +139,56 @@ public class cameraView extends AppCompatActivity implements TextureView.Surface
 
         }
     }
-    public void modifyCameraSetting(){
-        camera.setShutterSpeed(SettingsDefinitions.ShutterSpeed.values()[ShutterSet],this);
-        camera.setISO(SettingsDefinitions.ISO.values()[ISOSet],this);
-        camera.setAperture(SettingsDefinitions.Aperture.values()[ApertureSet],this);
-        camera.setExposureCompensation(SettingsDefinitions.ExposureCompensation.values()[ExposureSet],this);
+
+
+    public void updateCameraMode(){
+
+        camera.getExposureMode(new CommonCallbacks.CompletionCallbackWith<SettingsDefinitions.ExposureMode>() {
+            @Override
+            public void onSuccess(SettingsDefinitions.ExposureMode exposureMode) {
+                if (option==1){
+                    cameraView.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            np_shutter.setEnabled(false);
+                            np_ISO.setEnabled(false);
+                            np_aperture.setEnabled(false);
+                            np_exposureCompensation.setEnabled(true);
+                            setResultToToast("AUTO");
+                        }
+                    });
+                }
+                else if (option==2){
+                    cameraView.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            np_shutter.setEnabled(true);
+                            np_ISO.setEnabled(false);
+                            np_aperture.setEnabled(false);
+                            np_exposureCompensation.setEnabled(true);
+                            setResultToToast("SHUTTER");
+                        }
+                    });
+                }
+                else if (option==4){
+                    cameraView.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            np_shutter.setEnabled(true);
+                            np_ISO.setEnabled(true);
+                            np_aperture.setEnabled(true);
+                            np_exposureCompensation.setEnabled(false);
+                            setResultToToast("MANUAL");
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onFailure(DJIError djiError) {setResultToToast(djiError.toString());}
+        });
     }
-    public void updateCameraSetting(){
+    public void getCameraStatus(){
         camera.getShutterSpeed(new CommonCallbacks.CompletionCallbackWith<SettingsDefinitions.ShutterSpeed>() {
             @Override
             public void onSuccess(SettingsDefinitions.ShutterSpeed shutterSpeed) {
@@ -145,7 +200,7 @@ public class cameraView extends AppCompatActivity implements TextureView.Surface
             }
             @Override
             public void onFailure(DJIError djiError) {
-                setResultToToast(djiError.toString());
+                setResultToToast("Shutter speed fetch failed");
             }
         });
         camera.getISO(new CommonCallbacks.CompletionCallbackWith<SettingsDefinitions.ISO>() {
@@ -159,7 +214,7 @@ public class cameraView extends AppCompatActivity implements TextureView.Surface
             }
             @Override
             public void onFailure(DJIError djiError) {
-                    setResultToToast(djiError.toString());
+                    setResultToToast("ISO fetch failed");
             }
         });
         camera.getAperture(new CommonCallbacks.CompletionCallbackWith<SettingsDefinitions.Aperture>() {
@@ -174,7 +229,7 @@ public class cameraView extends AppCompatActivity implements TextureView.Surface
 
             @Override
             public void onFailure(DJIError djiError) {
-                setResultToToast(djiError.toString());
+                setResultToToast("Aperture fetch failed");
             }
         });
         camera.getExposureCompensation(new CommonCallbacks.CompletionCallbackWith<SettingsDefinitions.ExposureCompensation>() {
@@ -186,16 +241,20 @@ public class cameraView extends AppCompatActivity implements TextureView.Surface
                         break;
                     }
             }
-
             @Override
             public void onFailure(DJIError djiError) {
-                setResultToToast(djiError.toString());
+                setResultToToast("exposure compensation fetch failed");
             }
         });
-        np_shutter.setValue(ShutterSet);
-        np_ISO.setValue(ISOSet);
-        np_aperture.setValue(ApertureSet);
-        np_exposureCompensation.setValue(ExposureSet);
+        cameraView.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                np_shutter.setValue(ShutterSet);
+                np_ISO.setValue(ISOSet);
+                np_aperture.setValue(ApertureSet);
+                np_exposureCompensation.setValue(ExposureSet);
+            }
+        });
     }
     public void displayDroneStatus(){
         TextView tv_droneInfo;
@@ -260,46 +319,154 @@ public class cameraView extends AppCompatActivity implements TextureView.Surface
     }
     private void initUI() {
         // init mVideoSurface
+
         mVideoSurface = (TextureView)findViewById(R.id.video_previewer_surface);
         drawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
         np_shutter = findViewById(R.id.np_shutter);
         np_ISO = findViewById(R.id.np_ISO);
         np_aperture = findViewById(R.id.np_Aperture);
         np_exposureCompensation = findViewById(R.id.np_exposure);
-        np_shutter.setDisplayedValues(ShutterValue);
-        np_shutter.setMaxValue(ShutterValue.length-1);
-        np_ISO.setDisplayedValues(ISOValue);
-        np_ISO.setMaxValue(ISOValue.length-1);
-        np_exposureCompensation.setDisplayedValues(ExposureValue);
-        np_exposureCompensation.setMaxValue(ExposureValue.length-1);
-        np_aperture.setDisplayedValues(ApertureValue);
-        np_aperture.setMaxValue(ApertureValue.length-1);
+        np_shutter.setDisplayedValues(ShutterValuePro);
+        np_shutter.setMaxValue(ShutterValuePro.length-1);
+        np_ISO.setDisplayedValues(ISOValuePro);
+        np_ISO.setMaxValue(ISOValuePro.length-1);
+        np_exposureCompensation.setDisplayedValues(ExposureValuePro);
+        np_exposureCompensation.setMaxValue((ExposureValuePro.length-1));
+        np_exposureCompensation.setValue((ExposureValuePro.length-1)/2);
+        np_aperture.setDisplayedValues(ApertureValuePro);
+        np_aperture.setMaxValue(ApertureValuePro.length-1);
+        np_shutter.setWrapSelectorWheel(false);
+        np_ISO.setWrapSelectorWheel(false);
+        np_aperture.setWrapSelectorWheel(false);
+        np_exposureCompensation.setWrapSelectorWheel(false);
+        np_shutter.setEnabled(false);
+        np_ISO.setEnabled(false);
+        np_aperture.setEnabled(false);
+        np_exposureCompensation.setEnabled(false);
         np_shutter.setOnValueChangedListener(this);
         np_ISO.setOnValueChangedListener(this);
         np_aperture.setOnValueChangedListener(this);
         np_exposureCompensation.setOnValueChangedListener(this);
         rg_cameraMode = findViewById(R.id.rg_mode);
+        rg_cameraMode.check(R.id.rb_auto);
         rg_cameraMode.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup radioGroup, int i) {
                 switch (i){
                     case R.id.rb_auto:{
-                        camera.setExposureMode(SettingsDefinitions.ExposureMode.PROGRAM,cameraView.this::onResult);
-                        updateCameraSetting();
-                        setResultToToast("auto mode");
+                        option = 1;
                         break;
                     }
                     case R.id.rb_shutter:{
-                        camera.setExposureMode(SettingsDefinitions.ExposureMode.SHUTTER_PRIORITY,cameraView.this::onResult);
-                        updateCameraSetting();
+                        option = 2;
                         break;
                     }
                     case R.id.rb_manual:{
-                        camera.setExposureMode(SettingsDefinitions.ExposureMode.MANUAL,cameraView.this::onResult);
-                        updateCameraSetting();
+                        option = 4;
                         break;
                     }
                 }
+                setCameraMode();
+                getCameraStatus();
+            }
+        });
+        findViewById(R.id.bt_pre_set_1).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                camera.setExposureMode(SettingsDefinitions.ExposureMode.MANUAL, new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(DJIError djiError) {
+                        if (djiError!=null)
+                            setResultToToast("set camera Manual failed");
+                    }
+                });
+                camera.setShutterSpeed(SHUTTER_SPEED_1_1000, new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(DJIError djiError) {
+                        if (djiError!=null)
+                            setResultToToast("set camera shutter 1/1000 failed");
+                    }
+                });
+                camera.setISO(SettingsDefinitions.ISO.ISO_200, new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(DJIError djiError) {
+                        if (djiError!=null)
+                            setResultToToast("set camera ISO 200 failed");
+                    }
+                });
+                camera.setAperture(SettingsDefinitions.Aperture.F_3_DOT_2, new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(DJIError djiError) {
+                        if (djiError!=null)
+                            setResultToToast("set Aperture 3.2 failed");
+                    }
+                });
+            }
+        });
+        findViewById(R.id.bt_pre_set_2).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                camera.setExposureMode(SettingsDefinitions.ExposureMode.MANUAL, new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(DJIError djiError) {
+                        if (djiError!=null)
+                            setResultToToast("set camera Manual failed");
+                    }
+                });
+                camera.setShutterSpeed(SHUTTER_SPEED_1_1000, new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(DJIError djiError) {
+                        if (djiError!=null)
+                            setResultToToast("set camera shutter 1/1000 failed");
+                    }
+                });
+                camera.setISO(SettingsDefinitions.ISO.ISO_400, new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(DJIError djiError) {
+                        if (djiError!=null)
+                            setResultToToast("set camera ISO 400 failed");
+                    }
+                });
+                camera.setAperture(SettingsDefinitions.Aperture.F_7_DOT_1, new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(DJIError djiError) {
+                        if (djiError!=null)
+                            setResultToToast("set Aperture 7.1 failed");
+                    }
+                });
+            }
+        });
+        findViewById(R.id.bt_pre_set_3).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                camera.setExposureMode(SettingsDefinitions.ExposureMode.MANUAL, new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(DJIError djiError) {
+                        if (djiError!=null)
+                            setResultToToast("set camera Manual failed");
+                    }
+                });
+                camera.setShutterSpeed(SHUTTER_SPEED_1_1600, new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(DJIError djiError) {
+                        if (djiError!=null)
+                            setResultToToast("set camera shutter 1/1600 failed");
+                    }
+                });
+                camera.setISO(SettingsDefinitions.ISO.ISO_400, new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(DJIError djiError) {
+                        if (djiError!=null)
+                            setResultToToast("set camera ISO 400 failed");
+                    }
+                });
+                camera.setAperture(SettingsDefinitions.Aperture.F_3_DOT_2, new CommonCallbacks.CompletionCallback() {
+                    @Override
+                    public void onResult(DJIError djiError) {
+                        if (djiError!=null)
+                            setResultToToast("set Aperture 3.2 failed");
+                    }
+                });
             }
         });
         findViewById(R.id.bt_cameraSetting).setOnClickListener(new View.OnClickListener() {
@@ -311,14 +478,12 @@ public class cameraView extends AppCompatActivity implements TextureView.Surface
         findViewById(R.id.btn_close_right).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                modifyCameraSetting();
                 drawerLayout.closeDrawer(GravityCompat.END);
             }
         });
         if (null != mVideoSurface) {
             mVideoSurface.setSurfaceTextureListener(this);
         }
-
     }
 
     private void initPreviewer() {
@@ -422,31 +587,28 @@ public class cameraView extends AppCompatActivity implements TextureView.Surface
     public void onValueChange(NumberPicker numberPicker, int i, int i1) {
         switch (numberPicker.getId()){
             case R.id.np_shutter: {
-                ShutterSet = i1;
+                ShutterSet = Arrays.asList(ShutterValue).indexOf(ShutterValuePro[i1]);
                 break;
             }
             case R.id.np_ISO: {
-                ISOSet = i1;
+                ISOSet = Arrays.asList(ISOValue).indexOf(ISOValuePro[i1]);
                 break;
             }
             case R.id.np_Aperture:{
-                ApertureSet = i1;
+                ApertureSet = Arrays.asList(ApertureValue).indexOf(ApertureValuePro[i1]);
                 break;
             }
             case R.id.np_exposure:{
+                Arrays.asList(ExposureValue).indexOf(ExposureValuePro[i1]);
                 ExposureSet = i1;
                 break;
             }
             default:
                 break;
         }
+        setCameraSetting_old();
     }
 
-    @Override
-    public void onResult(DJIError djiError) {
-        if (djiError!=null)
-            setResultToToast(djiError.toString());
-    }
     private void setResultToToast(final String string){
         cameraView.this.runOnUiThread(new Runnable() {
             @Override
@@ -457,12 +619,216 @@ public class cameraView extends AppCompatActivity implements TextureView.Surface
     }
 
     @Override
-    public void onSuccess(SettingsDefinitions.ShutterSpeed shutterSpeed) {
+    public void onResult(DJIError djiError) {
 
     }
+    public void setShutterSpeed(){
+        while (true){
+            if (currentShutterSpeed == SettingsDefinitions.ShutterSpeed.values()[ShutterSet])
+                break;
+            else
+                camera.setShutterSpeed(SettingsDefinitions.ShutterSpeed.values()[ShutterSet],this::onResult);
+        }
+    }
+    public SettingsDefinitions.ShutterSpeed checkShutterSpeed(){
+        camera.getShutterSpeed(new CommonCallbacks.CompletionCallbackWith<SettingsDefinitions.ShutterSpeed>() {
+            @Override
+            public void onSuccess(SettingsDefinitions.ShutterSpeed shutterSpeed) {
+                currentShutterSpeed = shutterSpeed;
+            }
+            @Override
+            public void onFailure(DJIError djiError) {}
+        });
+        return currentShutterSpeed;
+    }
 
-    @Override
-    public void onFailure(DJIError djiError) {
-        setResultToToast(djiError.toString());
+    public void setISO(){
+        while (true){
+            if (currentISO == SettingsDefinitions.ISO.values()[ISOSet])
+                break;
+            else
+                camera.setISO(SettingsDefinitions.ISO.values()[ISOSet],this::onResult);
+        }
+    }
+    public SettingsDefinitions.ISO checkISO() {
+        camera.getISO(new CommonCallbacks.CompletionCallbackWith<SettingsDefinitions.ISO>() {
+            @Override
+            public void onSuccess(SettingsDefinitions.ISO ISO) {
+                currentISO = ISO;
+            }
+
+            @Override
+            public void onFailure(DJIError djiError) {
+            }
+        });
+        return currentISO;
+    }
+        public void setAperture(){
+            while (true){
+                if (currentAperture == SettingsDefinitions.Aperture.values()[ApertureSet])
+                    break;
+                else
+                    camera.setAperture(SettingsDefinitions.Aperture.values()[ApertureSet],this::onResult);
+            }
+        }
+        public SettingsDefinitions.Aperture checkAperture(){
+            camera.getAperture(new CommonCallbacks.CompletionCallbackWith<SettingsDefinitions.Aperture>() {
+                @Override
+                public void onSuccess(SettingsDefinitions.Aperture Aperture) {
+                    currentAperture = Aperture;
+                }
+                @Override
+                public void onFailure(DJIError djiError) {}
+            });
+            return currentAperture;
+    }
+    public void setExposure(){
+        while (true){
+            if (currentExposure == SettingsDefinitions.ExposureCompensation.values()[ExposureSet])
+                break;
+            else
+                camera.setExposureCompensation(SettingsDefinitions.ExposureCompensation.values()[ExposureSet],this::onResult);
+        }
+    }
+    public SettingsDefinitions.ExposureCompensation checkExposure() {
+        camera.getExposureCompensation(new CommonCallbacks.CompletionCallbackWith<SettingsDefinitions.ExposureCompensation>() {
+            @Override
+            public void onSuccess(SettingsDefinitions.ExposureCompensation Exposure) {
+                currentExposure = Exposure;
+            }
+
+            @Override
+            public void onFailure(DJIError djiError) {
+            }
+        });
+        return currentExposure;
+    }
+    public void setCameraMode(){
+        //PROGRAM(1),SHUTTER_PRIORITY(2),APERTURE_PRIORITY(3),MANUAL(4),CINE(7),
+        while (true){
+            camera.getExposureMode(new CommonCallbacks.CompletionCallbackWith<SettingsDefinitions.ExposureMode>() {
+                @Override
+                public void onSuccess(SettingsDefinitions.ExposureMode exposureMode) {
+                    cameraCurrentState = exposureMode;
+                }
+                @Override
+                public void onFailure(DJIError djiError) {}
+            });
+            if (cameraCurrentState == SettingsDefinitions.ExposureMode.values()[option-1])
+                break;
+            else
+                camera.setExposureMode(SettingsDefinitions.ExposureMode.values()[option-1],this);
+        }
+        if (option == 1) {
+            np_shutter.setEnabled(false);
+            np_ISO.setEnabled(false);
+            np_aperture.setEnabled(false);
+            np_exposureCompensation.setEnabled(true);
+        }
+        else if (option==2){
+            np_shutter.setEnabled(true);
+            np_ISO.setEnabled(false);
+            np_aperture.setEnabled(false);
+            np_exposureCompensation.setEnabled(true);
+        }
+        else{
+            np_shutter.setEnabled(true);
+            np_ISO.setEnabled(true);
+            np_aperture.setEnabled(true);
+            np_exposureCompensation.setEnabled(false);
+        }
+    }
+    public void setCameraSetting(){
+        cameraView.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (option == 1)
+                    setExposure();
+                else if (option == 2) {
+                    setShutterSpeed();
+                    setExposure();
+                } else if (option == 4) {
+                    setShutterSpeed();
+                    setISO();
+                    setAperture();
+                }
+            }
+        });
+    }
+    public void setCameraSetting_old(){
+        cameraView.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (option==1){
+                    camera.setExposureMode(SettingsDefinitions.ExposureMode.PROGRAM, new CommonCallbacks.CompletionCallback() {
+                        @Override
+                        public void onResult(DJIError djiError) {
+                            if (djiError!=null)
+                                setResultToToast("AUTO mode set failde");
+                        }
+                    });
+                    camera.setExposureCompensation(SettingsDefinitions.ExposureCompensation.values()[ExposureSet], new CommonCallbacks.CompletionCallback() {
+                        @Override
+                        public void onResult(DJIError djiError) {
+                            if (djiError!=null)
+                                setResultToToast("set compensation failed");
+                        }
+                    });
+                }
+                else if (option==2){
+                    camera.setExposureMode(SettingsDefinitions.ExposureMode.SHUTTER_PRIORITY, new CommonCallbacks.CompletionCallback() {
+                        @Override
+                        public void onResult(DJIError djiError) {
+                            if (djiError!=null)
+                                setResultToToast("Shutter mode set failed");
+                        }
+                    });
+                    camera.setShutterSpeed(SettingsDefinitions.ShutterSpeed.values()[ShutterSet], new CommonCallbacks.CompletionCallback() {
+                        @Override
+                        public void onResult(DJIError djiError) {
+                            if (djiError!=null)
+                                setResultToToast("shutter speed set failed");
+                        }
+                    });
+                    camera.setExposureCompensation(SettingsDefinitions.ExposureCompensation.values()[ExposureSet], new CommonCallbacks.CompletionCallback() {
+                        @Override
+                        public void onResult(DJIError djiError) {
+                            if (djiError!=null)
+                                setResultToToast("exposure failed");
+                        }
+                    });
+                }
+                else if (option==4){
+                    camera.setExposureMode(SettingsDefinitions.ExposureMode.MANUAL, new CommonCallbacks.CompletionCallback() {
+                        @Override
+                        public void onResult(DJIError djiError) {
+                            if (djiError!=null)
+                                setResultToToast("MANUAL mode failed");
+                        }
+                    });
+                    camera.setShutterSpeed(SettingsDefinitions.ShutterSpeed.values()[ShutterSet], new CommonCallbacks.CompletionCallback() {
+                        @Override
+                        public void onResult(DJIError djiError) {
+                            if (djiError!=null)
+                                setResultToToast("shutter failed");
+                        }
+                    });
+                    camera.setISO(SettingsDefinitions.ISO.values()[ISOSet], new CommonCallbacks.CompletionCallback() {
+                        @Override
+                        public void onResult(DJIError djiError) {
+                            if (djiError!=null)
+                                setResultToToast("ISO failed");
+                        }
+                    });
+                    camera.setAperture(SettingsDefinitions.Aperture.values()[ApertureSet], new CommonCallbacks.CompletionCallback() {
+                        @Override
+                        public void onResult(DJIError djiError) {
+                            if (djiError!=null)
+                                setResultToToast("APERTURe failed");
+                        }
+                    });
+                }
+            }
+        });
     }
 }
