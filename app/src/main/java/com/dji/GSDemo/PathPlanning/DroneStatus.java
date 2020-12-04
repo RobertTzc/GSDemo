@@ -19,4 +19,13 @@ public class DroneStatus {
         public float cameraFOV = 66.0f;
         public int satelliteCount=0;
 
+        public String cameraShutter=null;
+        public String cameraAperture=null;
+        public String cameraISO=null;
+        public String cameraExposureCompensation=null;
+        public String cameraExposureMode=null;
+        public String cameraWhiteBalance = null;
+
+
+
 }

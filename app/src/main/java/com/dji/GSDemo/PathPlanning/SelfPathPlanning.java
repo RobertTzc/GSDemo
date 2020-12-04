@@ -139,6 +139,11 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
     String TimeStampString;
     Tools tool = new Tools();
     DroneStatus droneStatus = new DroneStatus();
+    SettingsDefinitions.ExposureMode cameraCurrentState;
+    SettingsDefinitions.ShutterSpeed currentShutterSpeed;
+    SettingsDefinitions.ISO currentISO;
+    SettingsDefinitions.Aperture currentAperture;
+    SettingsDefinitions.ExposureCompensation currentExposure;
     private static DecimalFormat df = new DecimalFormat("0.00");
 
 
@@ -274,7 +279,6 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
         filter.addAction(DJIDemoApplication.FLAG_CONNECTION_CHANGE);
         registerReceiver(mReceiver, filter);
 
-        mCamera = DJIDemoApplication.getCameraInstance();
         initUI();
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -316,6 +320,7 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
 
     private void initFlightController() {
         BaseProduct product = DJIDemoApplication.getProductInstance();
+        mCamera = DJIDemoApplication.getCameraInstance();
         if (product != null && product.isConnected()) {
             if (product instanceof Aircraft) {
                 mFlightController = ((Aircraft) product).getFlightController();
@@ -343,6 +348,14 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                     droneStatus.satelliteCount= djiFlightControllerCurrentState.getSatelliteCount();
                     droneStatus.homeLatitude = djiFlightControllerCurrentState.getHomeLocation().getLatitude();
                     droneStatus.homeLongtitude = djiFlightControllerCurrentState.getHomeLocation().getLongitude();
+                    try {
+                        droneStatus.cameraExposureMode = getCameraMode().toString();
+                        droneStatus.cameraISO = getISO().toString();
+                        droneStatus.cameraAperture = getAperture().toString();
+                        droneStatus.cameraShutter = getShutterSpeed().toString();
+                        droneStatus.cameraExposureCompensation = getExposure().toString();
+                    }
+                    catch(Exception e){}
                     drawDroneInfo();
                 }
             });
@@ -459,8 +472,12 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                 "\nHeight: "+String.valueOf(df.format(droneStatus.droneHeight))+"m"+
                 "\nOverlap set: "+ String.valueOf(droneStatus.overlapRatio)+"%"+
                 "\nDrone heading : "+ String.valueOf(droneStatus.droneHeading)+"deg"+
-                "\nbattery estimate: "+String.valueOf(droneStatus.batteryPrecentageRemian)+"%"
-        );
+                "\nbattery estimate: "+String.valueOf(droneStatus.batteryPrecentageRemian)+"%"+
+                "\ncamera Mode: "+droneStatus.cameraExposureMode +
+                "\ncamera shutter: "+droneStatus.cameraShutter +
+                "\ncamera ISO: " + droneStatus.cameraISO +
+                "\ncamera Aperture: " + droneStatus.cameraAperture+
+                "\ncamera ExposureCompensation:" + droneStatus.cameraExposureCompensation);
     }
     private void drawDroneInfo(){
         LatLng dronePos = new LatLng(droneStatus.droneLatitude, droneStatus.droneLongtitude);
@@ -750,7 +767,7 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
             setUpMap();
         }
 
-        LatLng MU = new LatLng(38.9129228409671,-92.2959491063508);
+        LatLng MU = new LatLng(droneStatus.droneLatitude,droneStatus.droneLongtitude);
         //gMap.addMarker(new MarkerOptions().position(MU).title("University of Missouri"));
         gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(MU,15));
         gMap.moveCamera(CameraUpdateFactory.newLatLng(MU));
@@ -774,5 +791,63 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
     public void onStopTrackingTouch(SeekBar seekBar) {
 
     }
+    public SettingsDefinitions.ShutterSpeed getShutterSpeed(){
+        mCamera.getShutterSpeed(new CommonCallbacks.CompletionCallbackWith<SettingsDefinitions.ShutterSpeed>() {
+            @Override
+            public void onSuccess(SettingsDefinitions.ShutterSpeed shutterSpeed) {
+                currentShutterSpeed = shutterSpeed;
+            }
+            @Override
+            public void onFailure(DJIError djiError) {}
+        });
+        return currentShutterSpeed;
+    }
 
+    public SettingsDefinitions.ISO getISO() {
+        mCamera.getISO(new CommonCallbacks.CompletionCallbackWith<SettingsDefinitions.ISO>() {
+            @Override
+            public void onSuccess(SettingsDefinitions.ISO ISO) {
+                currentISO = ISO;
+            }
+
+            @Override
+            public void onFailure(DJIError djiError) {}
+        });
+        return currentISO;
+    }
+    public SettingsDefinitions.Aperture getAperture(){
+        mCamera.getAperture(new CommonCallbacks.CompletionCallbackWith<SettingsDefinitions.Aperture>() {
+            @Override
+            public void onSuccess(SettingsDefinitions.Aperture Aperture) {
+                currentAperture = Aperture;
+            }
+            @Override
+            public void onFailure(DJIError djiError) {}
+        });
+        return currentAperture;
+    }
+    public SettingsDefinitions.ExposureCompensation getExposure() {
+        mCamera.getExposureCompensation(new CommonCallbacks.CompletionCallbackWith<SettingsDefinitions.ExposureCompensation>() {
+            @Override
+            public void onSuccess(SettingsDefinitions.ExposureCompensation Exposure) {
+                currentExposure = Exposure;
+            }
+
+            @Override
+            public void onFailure(DJIError djiError) {
+            }
+        });
+        return currentExposure;
+    }
+    public SettingsDefinitions.ExposureMode getCameraMode(){
+        mCamera.getExposureMode(new CommonCallbacks.CompletionCallbackWith<SettingsDefinitions.ExposureMode>() {
+            @Override
+            public void onSuccess(SettingsDefinitions.ExposureMode exposureMode) {
+                cameraCurrentState = exposureMode;
+            }
+            @Override
+            public void onFailure(DJIError djiError) {}
+        });
+        return cameraCurrentState;
+    }
 }
