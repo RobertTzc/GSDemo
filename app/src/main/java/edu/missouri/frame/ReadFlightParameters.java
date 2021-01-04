@@ -55,10 +55,15 @@ public class ReadFlightParameters {
          */
 
         int verticesNum = GPSvertices.size();
+//        List<GePoint> TMPGPSvertices;
+//        try{
+//            TMPGPSvertices = GPSvertices;
+//        }catch (Exception e){
+//            TMPGPSvertices = new SortVertise(GPSvertices).reverseVertices();
+//        }
         List<GePoint> GPSverticesSorted = new SortVertise(GPSvertices).getCounterClockwiseVertices();
         Point[] verticesTmp = new Point[verticesNum];
         for (int i = 0; i < verticesNum; i++) {
-            List<Point> points = new ArrayList<Point>();
             verticesTmp[i] = GPSToCord(GPSverticesSorted.get(i), GPSstartPoint);
         }
         Point startPoint =  new Point(GPSToCord(GPSstartPoint, GPSstartPoint),droneStatus.droneHeight);

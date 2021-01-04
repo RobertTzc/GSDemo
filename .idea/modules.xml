@@ -2,8 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/GSDemo.iml" filepath="$PROJECT_DIR$/.idea/modules/GSDemo.iml" group="GSDemo" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/GSDemo-Preview.iml" filepath="$PROJECT_DIR$/.idea/modules/GSDemo-Preview.iml" group="GSDemo-Preview" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/app.iml" group="GSDemo-Preview/app" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/app.iml" group="GSDemo/app" />
     </modules>
   </component>
 </project>

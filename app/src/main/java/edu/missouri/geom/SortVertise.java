@@ -65,7 +65,7 @@ public class SortVertise {
         return mapAll;
     }
 
-    public List<GePoint> getCounterClockwiseVertices(){
+    public List<GePoint> sortCounterClockwiseVertices(){
         HashMap<Integer, ArrayList<Object>> mapAll = SortMapAll(getMapAll(GPSVertices,GPScenter));
         List<GePoint> result = new ArrayList<>();
         for(Integer integer:mapAll.keySet()){
@@ -74,6 +74,17 @@ public class SortVertise {
         Collections.reverse(result);
         return result;
     }
+
+    public List<GePoint> getCounterClockwiseVertices(){
+        HashMap<Integer, ArrayList<Object>> mapAll = getMapAll(GPSVertices,GPScenter);
+        int size = mapAll.size();
+        System.out.println(size);
+        if(Double.parseDouble(mapAll.get(size-1).get(1).toString())>Double.parseDouble(mapAll.get(size-2).get(1).toString())){
+            Collections.reverse(GPSVertices);
+        }
+        return GPSVertices;
+    }
+
 
 
 }

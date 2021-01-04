@@ -65,6 +65,7 @@ import dji.common.mission.waypoint.WaypointMissionExecutionEvent;
 import dji.common.mission.waypoint.WaypointMissionFinishedAction;
 import dji.common.mission.waypoint.WaypointMissionFlightPathMode;
 import dji.common.mission.waypoint.WaypointMissionHeadingMode;
+import dji.common.mission.waypoint.WaypointMissionState;
 import dji.common.mission.waypoint.WaypointMissionUploadEvent;
 import dji.common.product.Model;
 import dji.common.useraccount.UserAccountState;
@@ -136,6 +137,7 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
     ArrayList<Double> wpAltitude = new ArrayList<>();
     int batteryLevel = 0,satelliteCt = 0;
     String fileName,filePath;
+    String energyfileName,energyfilePath;
     String TimeStampString;
     Tools tool = new Tools();
     DroneStatus droneStatus = new DroneStatus();
@@ -344,6 +346,7 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                     droneStatus.droneLongtitude = djiFlightControllerCurrentState.getAircraftLocation().getLongitude();
                     droneStatus.droneHeight = djiFlightControllerCurrentState.getAircraftLocation().getAltitude();
                     droneStatus.droneSpeed = sqrt(Math.pow(djiFlightControllerCurrentState.getVelocityX(),2)+Math.pow(djiFlightControllerCurrentState.getVelocityY(),2));
+                    droneStatus.droneVerticalSpeed = djiFlightControllerCurrentState.getVelocityZ();
                     droneStatus.droneHeading = mFlightController.getCompass().getHeading();
                     droneStatus.satelliteCount= djiFlightControllerCurrentState.getSatelliteCount();
                     droneStatus.homeLatitude = djiFlightControllerCurrentState.getHomeLocation().getLatitude();
@@ -356,6 +359,7 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                         droneStatus.cameraExposureCompensation = getExposure().toString();
                     }
                     catch(Exception e){}
+                    droneStatus.droneMissionState = getWaypointMissionOperator().getCurrentState();
                     drawDroneInfo();
                 }
             });
@@ -473,11 +477,21 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                 "\nOverlap set: "+ String.valueOf(droneStatus.overlapRatio)+"%"+
                 "\nDrone heading : "+ String.valueOf(droneStatus.droneHeading)+"deg"+
                 "\nbattery estimate: "+String.valueOf(droneStatus.batteryPrecentageRemian)+"%"+
+                "\ndrone Mission Status: "+ droneStatus.droneMissionState.toString()+
                 "\ncamera Mode: "+droneStatus.cameraExposureMode +
                 "\ncamera shutter: "+droneStatus.cameraShutter +
                 "\ncamera ISO: " + droneStatus.cameraISO +
                 "\ncamera Aperture: " + droneStatus.cameraAperture+
                 "\ncamera ExposureCompensation:" + droneStatus.cameraExposureCompensation);
+        if (droneStatus.droneMissionState.toString().equals("EXECUTING")){
+            tool.writeTxtToFile(TimeStampString+"\t"+droneStatus.droneLatitude+"\t"+droneStatus.droneLongtitude+
+                    "\t"+String.valueOf(df.format(droneStatus.droneSpeed))+
+                    "\t"+String.valueOf(df.format(droneStatus.droneVerticalSpeed))+
+                    "\t"+String.valueOf(droneStatus.droneHeading)+
+                    "\t"+String.valueOf(droneStatus.batteryPercentage)
+                    , energyfilePath, energyfileName);
+        }
+
     }
     private void drawDroneInfo(){
         LatLng dronePos = new LatLng(droneStatus.droneLatitude, droneStatus.droneLongtitude);
@@ -631,7 +645,16 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                 TimeStampString = java.text.DateFormat.getDateTimeInstance().format(new Date());
                 filePath = Environment.getExternalStorageDirectory()
                         .getPath() + "/DJI_Log/";
+                energyfilePath = Environment.getExternalStorageDirectory()
+                        .getPath() + "/DJI_ENERGY/";
                 fileName = "PathPlanning_Project_"+java.text.DateFormat.getDateTimeInstance().format(new Date())+".txt";
+                energyfileName = "PathPlanning_Project_"+java.text.DateFormat.getDateTimeInstance().format(new Date())+".txt";
+                tool.writeTxtToFile("TimeStamp"+"\tLatitude"+"\tLongtitude"+
+                                "\tdroneSpeed"+
+                                "\tdroneVerticalSpeed"+
+                                "\tdroneHeading"+
+                                "\tbatteryPercentage"
+                        , energyfilePath, energyfileName);
                 tool.writeTxtToFile("Start project time: " + TimeStampString, filePath, fileName);
                 tool.writeTxtToFile("Drone setting info:\n",filePath,fileName);
                 tool.writeTxtToFile("Battery_info: "+String.valueOf(droneStatus.batteryPercentage)+
