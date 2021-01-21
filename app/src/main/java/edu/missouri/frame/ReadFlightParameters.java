@@ -37,7 +37,7 @@ public class ReadFlightParameters {
 
     public ReadFlightParameters() {
     }
-    public void UpdateBounds(List<GePoint> GPSvertices,  double height, DroneStatus droneStatus)
+    public void UpdateBounds(List<GePoint> GPSvertices, double height, DroneStatus droneStatus)
     {
         this.GPSstartPoint = new GePoint(droneStatus.droneLatitude,droneStatus.droneLongtitude);
         this.GPSendPoint = new GePoint(droneStatus.homeLatitude,droneStatus.homeLongtitude);
@@ -82,7 +82,6 @@ public class ReadFlightParameters {
         area = Area.readPolygonFromCSV();
         drone = new ImprovedDirectDrone(area);
         Map<Point, Boolean> maps = drone.routes();
-        System.out.println(Arrays.toString(maps.entrySet().toArray()));
         double energyBudget = drone.TOTAL_ENERGY * (Option.energyPercnetRemaining)/100.0;//20% alarm
         double energyUse = drone.energyUsed(plannedSpeed);
         Iterator<Map.Entry<Point, Boolean>> entries = maps.entrySet().iterator();
@@ -114,7 +113,7 @@ public class ReadFlightParameters {
             this.reconmendSpeed = drone.getOptimalSpeed(plannedSpeed,energyBudget);
         }
         else {
-            this.energyPercentRemainingAfterPlan = (int)Math.round(100*(0.01*Option.energyPercnetRemaining*drone.TOTAL_ENERGY-energyUse)/drone.TOTAL_ENERGY);
+            this.energyPercentRemainingAfterPlan = (int) Math.round(100*(0.01*Option.energyPercnetRemaining*drone.TOTAL_ENERGY-energyUse)/drone.TOTAL_ENERGY);
             this.ifEnergyEnough = true;
             this.reconmendSpeed = plannedSpeed;
         }
@@ -123,8 +122,6 @@ public class ReadFlightParameters {
         this.wayPoints = wayPoints;
         this.horizonGap = (1-Option.overlap)*Option.defaultImageHeight();
         this.verticalGap = (1-Option.overlap)*Option.defaultImageWidth();
-        System.out.println(energyPercentRemainingAfterPlan);
-        System.out.println(reconmendSpeed);
     }
 
     public Point GPSToCord(GePoint target, GePoint standard) {

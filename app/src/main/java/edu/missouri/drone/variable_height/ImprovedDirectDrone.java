@@ -1,7 +1,5 @@
 package edu.missouri.drone.variable_height;
 
-import org.apache.commons.math3.special.Erf;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -102,7 +100,7 @@ public class ImprovedDirectDrone extends Drone {
             }
         }
 
-        Map<Point,Boolean> maps = new LinkedHashMap<>();
+        Map<Point, Boolean> maps = new LinkedHashMap<>();
 
         for(Point data : predecideWayPoints){
             boolean isTurning = false;
@@ -287,6 +285,8 @@ public class ImprovedDirectDrone extends Drone {
             result += legEnergy(lines[i], speedIn , cruiseSpeed, speedOut );
         }
         result += legEnergy(backLine, 0 , Option.toandBackSpeed, 0 );
+        System.out.println("total energy is ");
+        System.out.println(result);
         return result;
     }
 
@@ -315,45 +315,35 @@ public class ImprovedDirectDrone extends Drone {
 //        System.out.println("crusie speed:"+cruiseSpeed);
 //        System.out.println("end speed:"+endSpeed);
 
-
-        if(path.dz() < 0) result += 210 * path.dz() / DESCENT_SPEED * EFFICIENCY_FACTOR;
-        if(path.dz() > 0) result += 250 * path.dz() / ASCENT_SPEED  * EFFICIENCY_FACTOR;
+        if(path.dz() < 0) result += Drone.Power_Decending*path.dz()/Drone.DESCENT_SPEED;
+        if(path.dz() > 0) result += Drone.Power_Climbing*path.dz()/Drone.ASCENT_SPEED;
         return result;
     }
 
     private static double accEnergy(double vIn, double vOut) {
-        double tIn  = accTime(vIn);
-        double tOut = accTime(vOut);
-        return (Math.pow(tOut, 2.35)/2.35 + 220*tOut)
-                - (Math.pow(tIn, 2.35)/2.35 + 220*tIn);
+        double t = accTime(vOut-vIn);
+        return t*Drone.Power_Accelareation;
     }
     private static double accTime(double v) {
-        return -4 * Math.log(16.138/(1.138+v) - 1) + 11;
+        return v/Drone.Accelaration;
     }
     private static double accDist(double vIn, double vOut) {
-        double tIn  = accTime(vIn);
-        double tOut = accTime(vOut);
-        return (64.552*Math.log(15.6426+Math.pow(Math.E, 0.25*tOut)) - 1.138*tOut)
-                - (64.552*Math.log(15.6426+Math.pow(Math.E, 0.25*tIn )) - 1.138*tIn);
+        return (vOut*vOut-vIn*vIn)/(2*Drone.Accelaration);
     }
 
     public static double decEnergy(double vIn, double vOut) {
-        double tIn = decTime(vIn);
-        double tOut = decTime(vOut);
-        return (313.769*tOut-24.349*Math.pow(tOut, 2)+2.53967*Math.pow(tOut, 3)-0.1105*Math.pow(tOut, 4)+0.0017*Math.pow(tOut, 5))
-                - (313.769*tIn -24.349*Math.pow(tIn , 2)+2.53967*Math.pow(tIn , 3)-0.1105*Math.pow(tIn , 4)+0.0017*Math.pow(tIn , 5));
+        double t = decTime(vIn-vOut);
+        return t*Drone.Power_Decelareation;
     }
     private static double decTime(double v) {
-        return Math.sqrt(Math.log((v + 0.1)/15.1)/-0.02);
+        return v/Drone.Decelaration;
     }
     private static double decDist(double vIn, double vOut) {
-        double tIn = decTime(vIn);
-        double tOut = decTime(vOut);
-        return ((-0.1*tOut)+94.6252* Erf.erf(0.141421 * tOut))-((-0.1*tIn)+94.6252* Erf.erf(0.141421*tIn));
+        return (vIn*vIn-vOut*vOut)/(2*Drone.Decelaration);
     }
 
     public static double cruiseEnergy(double dist, double speed) {
-        return (Math.pow(.25*speed, 4) - 8*Math.pow(.25*speed, 2) + 220) * dist/speed;
+        return Drone.getPowerWithSpeed(speed)*(dist/speed);
     }
 
 }

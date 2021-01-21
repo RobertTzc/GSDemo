@@ -335,6 +335,8 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                 @Override
                 public void onUpdate(BatteryState batteryState) {
                     droneStatus.batteryPercentage = batteryState.getChargeRemainingInPercent();
+                    droneStatus.batteryCurrent = batteryState.getCurrent();
+                    droneStatus.batteryVoltage = batteryState.getVoltage();
                 }
             });
         }
@@ -360,6 +362,7 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                     }
                     catch(Exception e){}
                     droneStatus.droneMissionState = getWaypointMissionOperator().getCurrentState();
+                    droneStatus.isFly = djiFlightControllerCurrentState.isFlying();
                     drawDroneInfo();
                 }
             });
@@ -482,13 +485,19 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                 "\ncamera shutter: "+droneStatus.cameraShutter +
                 "\ncamera ISO: " + droneStatus.cameraISO +
                 "\ncamera Aperture: " + droneStatus.cameraAperture+
-                "\ncamera ExposureCompensation:" + droneStatus.cameraExposureCompensation);
-        if (droneStatus.droneMissionState.toString().equals("EXECUTING")){
+                "\ncamera ExposureCompensation:" + droneStatus.cameraExposureCompensation+
+                "\nDrone battery current:" + String.valueOf(droneStatus.batteryCurrent)+
+                "\nDrone battery voltage:" + String.valueOf(droneStatus.batteryVoltage)
+        );
+        if (droneStatus.isFly){
+            TimeStampString = java.text.DateFormat.getDateTimeInstance().format(new Date());
             tool.writeTxtToFile(TimeStampString+"\t"+droneStatus.droneLatitude+"\t"+droneStatus.droneLongtitude+
                     "\t"+String.valueOf(df.format(droneStatus.droneSpeed))+
                     "\t"+String.valueOf(df.format(droneStatus.droneVerticalSpeed))+
                     "\t"+String.valueOf(droneStatus.droneHeading)+
-                    "\t"+String.valueOf(droneStatus.batteryPercentage)
+                    "\t"+String.valueOf(droneStatus.batteryPercentage)+
+                    "\t"+String.valueOf(droneStatus.batteryCurrent)+
+                    "\t"+String.valueOf(droneStatus.batteryVoltage)
                     , energyfilePath, energyfileName);
         }
 
@@ -653,7 +662,9 @@ public class SelfPathPlanning extends FragmentActivity implements View.OnClickLi
                                 "\tdroneSpeed"+
                                 "\tdroneVerticalSpeed"+
                                 "\tdroneHeading"+
-                                "\tbatteryPercentage"
+                                "\tbatteryPercentage"+
+                                "\tbatteryCurrent"+
+                                "\tbatteryVoltage"
                         , energyfilePath, energyfileName);
                 tool.writeTxtToFile("Start project time: " + TimeStampString, filePath, fileName);
                 tool.writeTxtToFile("Drone setting info:\n",filePath,fileName);

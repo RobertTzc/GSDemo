@@ -78,8 +78,7 @@ public class SortVertise {
     public List<GePoint> getCounterClockwiseVertices(){
         HashMap<Integer, ArrayList<Object>> mapAll = getMapAll(GPSVertices,GPScenter);
         int size = mapAll.size();
-        System.out.println(size);
-        if(Double.parseDouble(mapAll.get(size-1).get(1).toString())>Double.parseDouble(mapAll.get(size-2).get(1).toString())){
+        if(Double.parseDouble(mapAll.get(size-1).get(1).toString())> Double.parseDouble(mapAll.get(size-2).get(1).toString())){
             Collections.reverse(GPSVertices);
         }
         return GPSVertices;

@@ -30,6 +30,9 @@ public class DroneStatus {
         public String cameraWhiteBalance = null;
 
         public WaypointMissionState droneMissionState = null;
+        public boolean isFly = false;
+        public int batteryCurrent = 0;
+        public int batteryVoltage = 0;
 
 
 

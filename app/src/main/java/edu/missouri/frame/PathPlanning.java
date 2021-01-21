@@ -49,7 +49,6 @@ public class PathPlanning {
     }
 
     public void planPath(){
-        System.out.println(area);
         area = Area.readPolygonFromCSV();
         drone = new ImprovedDirectDrone(area);
         Map<Point, Boolean> maps = ((ImprovedDirectDrone) drone).routes();
@@ -114,6 +113,5 @@ public class PathPlanning {
         double overlap = 20;
         ArrayList<Double> startPoint = new ArrayList<>(Arrays.asList(38.9129228409671,-92.2959491063508));
         PathPlanning path = new PathPlanning(latitude_list,longtitude_list,startPoint,height,overlap);
-        System.out.println(path.getWaypoints());
     }
 }
