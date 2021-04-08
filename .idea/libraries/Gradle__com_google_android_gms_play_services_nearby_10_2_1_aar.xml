@@ -1,9 +1,9 @@
 <component name="libraryTable">
   <library name="Gradle: com.google.android.gms:play-services-nearby:10.2.1@aar">
     <CLASSES>
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/cf4881672b17fde5756528cd8c1e6d17/jetified-play-services-nearby-10.2.1/AndroidManifest.xml" />
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/cf4881672b17fde5756528cd8c1e6d17/jetified-play-services-nearby-10.2.1/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/cf4881672b17fde5756528cd8c1e6d17/jetified-play-services-nearby-10.2.1/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/bde711908d22911d1422c2234181b3bc/jetified-play-services-nearby-10.2.1/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/bde711908d22911d1422c2234181b3bc/jetified-play-services-nearby-10.2.1/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/bde711908d22911d1422c2234181b3bc/jetified-play-services-nearby-10.2.1/res" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

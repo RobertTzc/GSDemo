@@ -326,7 +326,7 @@ Polygon {
         double max = 0;
         Point best = null;
         for(Angle a: toAngles()){
-            if(a.isConcave()) continue;
+//            if(a.isConcave()) continue;
             Point p = a.b();
             double k = p.orthoDistance(l);
             if(k > max) {
