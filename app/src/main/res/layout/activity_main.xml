@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.dji.GSDemo.GoogleMap.com.dji.GSDemo.PathPlanning.MainActivity"
+    android:orientation="vertical">
+
+    <Button
+        android:id="@+id/btn_waypoint"
+        android:layout_width="150dp"
+        android:layout_height="55dp"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="center"
+        android:background="@drawable/round_btn"
+        android:text="Waypoint"
+        android:textColor="@color/colorWhite"
+        android:textSize="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_weight="1"/>
+    <Button
+        android:id="@+id/btn_video"
+        android:layout_width="150dp"
+        android:layout_height="55dp"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="center"
+        android:background="@drawable/round_btn"
+        android:text="Video"
+        android:textColor="@color/colorWhite"
+        android:textSize="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_weight="1"/>
+    <Button
+        android:id="@+id/btn_cust_waypoint"
+        android:layout_width="150dp"
+        android:layout_height="55dp"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="center"
+        android:background="@drawable/round_btn"
+        android:text="Self path"
+        android:textColor="@color/colorWhite"
+        android:textSize="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_weight="1" />
+    <Button
+        android:id="@+id/btn_tapFly"
+        android:layout_width="150dp"
+        android:layout_height="55dp"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="center"
+        android:background="@drawable/round_btn"
+        android:text="Tap Fly"
+        android:textColor="@color/colorWhite"
+        android:textSize="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_weight="1"
+        android:layout_marginBottom="20dp"/>
+
+</LinearLayout>

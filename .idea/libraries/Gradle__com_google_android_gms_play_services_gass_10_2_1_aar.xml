@@ -1,0 +1,16 @@
+<component name="libraryTable">
+  <library name="Gradle: com.google.android.gms:play-services-gass:10.2.1@aar">
+    <CLASSES>
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/818cd1500ff2b1b84df0eb1273c5dd54/jetified-play-services-gass-10.2.1/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/818cd1500ff2b1b84df0eb1273c5dd54/jetified-play-services-gass-10.2.1/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/818cd1500ff2b1b84df0eb1273c5dd54/jetified-play-services-gass-10.2.1/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/059b2af5d8c01184202ed50b24de22da/jetified-play-services-gass-10.2.1/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/059b2af5d8c01184202ed50b24de22da/jetified-play-services-gass-10.2.1/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/059b2af5d8c01184202ed50b24de22da/jetified-play-services-gass-10.2.1/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/a5b571d62b5bca3cbcdf777d67da5eaa/jetified-play-services-gass-10.2.1/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/a5b571d62b5bca3cbcdf777d67da5eaa/jetified-play-services-gass-10.2.1/jars/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

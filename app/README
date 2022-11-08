@@ -1,0 +1,14 @@
+This APP is developed for University of Missouri Computer Science Lab under Dr Shang, it solo purpose is to collect aerial image data with DJI Mavic 2.
+Change Log
+2022 Sep_01 Update:
+    Added map polygon dynamic generation, replace the current check box options
+    Added rewind button, user can use that easily to withdraw the last point that they don't want
+    Changed the speed and height settings, these settings will be taken only when the flight plan is executed.
+2022 Sep_03-Sep_04 Update:
+    Fixed current BUGS of recording flight plans on external storage and add an tmp file stores last flight plan for resuming
+    Added the resume button for last flight polygon resuming, wp can be recalculated when the polygon is resumed
+    Added monitor on wp status, drones can continue last wp mission once the battery is changed(if the APP is terminated this func will not work)
+    Added 15 exceptional handle func for stable purposes
+TODO:
+    Need a field test, currently pass all simulator test
+    Add exceptional handle func for APP crush to restore all necessary data
