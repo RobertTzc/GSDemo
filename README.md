@@ -1,103 +1,107 @@
 # GSDemo
 ## TL;DR
-This is a demo app modified from Dji GSO Demo project. Developed for fully automatic self-path planning/ROI(region of interest) coverage.
-User can use this APP on mobile device to draw the region and configurative the drones with altitude/flying speed, camera settings etc. After the configuration the drone are capable of proceeding the mission automatically without any further interactions.
+This App is modified from the Dji GSO Demo project developed for fully automatic self-path planning across a region of interest (ROI). User can use this APP on a mobile device or smart controller to draw the region and configure the drones’ altitude, flying speed, camera settings, and other parameters. After configuration, the drones can complete the mission automatically without any further instruction or inputs.
 ## APP requirements & Compatibility  
-This APP is currently run on Android platform, it can be installed on mobile device(Android phone) or DJI smart controller(https://www.dji.com/smart-controller)(Out of Date), the compatibility to the newer version DJI RC Pro(https://www.dji.com/rc-pro?site=brandsite&from=nav) hasn't been tested, please proceed with caution.
+This APP is currently run on Android platform and may be installed on mobile devices (Android phone) or DJI smart controller (https://www.dji.com/smart-controller) (Out of Date). The compatibility to the newer version DJI RC Pro (https://www.dji.com/rc-pro?site=brandsite&from=nav) hasn't been tested - please proceed with caution if using this platform.
 
-The drone used with this system is Mavic 2 Pro(https://www.dji.com/mavic-2), please be notice that Mavic mini/Mavic 2 zoom is not supported.
+This system was developed for the  Mavic 2 Pro (https://www.dji.com/mavic-2). The Mavic mini/Mavic 2 zoom is not supported.
+
 
 ## Before using the APP
-Take the DJI smart controller as example (the procedure of using an Android phone is mostly same), please make sure the device is connect with the data_stream/WIFI. And confirm that the APP is installed correctly.
+Example images and videos are taken from the DJI smart controller (the procedure of using an Android phone is mostly the same). Please make sure the device is connected with the internet through mobile data_stream/WIFI. And confirm that the APP is installed correctly.
 
-Make sure the controller is connected with the drone, you can refer to the video here(https://www.youtube.com/watch?v=c8J4pEyzt2A)
+Make sure the controller is properly connected to the drone. For help, refer to the video here (https://www.youtube.com/watch?v=c8J4pEyzt2A).
 
-## Using the APP to deploy mission
-After the login in process, you should be prompt to a new screen with satellite map, and this guide will provide step by step guide for deploy the mission.
 
+## Using the APP 
 ### Registering the APP
-Open the APP and you should be prompt with a register screen, see the attached image below, at this stage the APP will go through all necessary pre-requisites including registering to the DJI API and checking the connection between the drone and the controller. **Please make sure the internet is available before open the APP.**  You should be expecting to see the 'open' button activated in 10s at this screen.
 
+Open the APP and a  registration screen will appear (see  image below). At this stage the APP will go through all necessary pre-requisites, including registering to the DJI API and checking the connection between the drone and the controller. **Please make sure the controller is connected to the internet and drone and internet is available before opening the APP.** The 'Open' button should be available in less than 10 seconds at this screen.
 
 >please attach an screen shoot here to demo the login screen
 
 ### Configure the path planning plan
 
-Once the register process succeed, you will be prompted with a satellite map where the drone is located. You can zoom in/out with two fingers just like google map. Please allow 10-20s for the map to be loaded if didn't see the satellite map. **if you didn't see the drone marks please click the button 'locate'.** 
+Once the register process succeeds, the app will open to a satellite map where the drone is located. Use two fingers to pinch to zoom in/out and pan with one finger just like on the Google maps app. The satellite may take time to load depending on internet quality and speed. **If the map loads and the  drone or controller location marks don’t appear,  please click the ‘locate’ button to be taken to the location of the drone on the map.**
+
+>please attach an screen shoot here to demo satellite map and location of the drone
+
 
 ### Draw the ROI(region of interest)
 
-When using single finger click on the map, you will be able to place an anchor(red mark) on the map, this will be used as a corner point of the region user is interested. In order to successfully create a ROI, at least 3 marks(clockwise/anti-clockwise) shall be placed, and a polygon in light green will demonstrate the region being selected. If needed, each anchor can be adjusted with finger long press the marker and drag to adjust.
-If there are markers created unexpected, user can delete last marker by using the button 'REWIND', and last marker will be removed.
+To mark the ROI, use a single finger to tap/click on the map in a corner of the ROI to place an anchor (red mark) on the map. Continue taping/clicking in a clockwise or counterclockwise order around the map to generate the ROI.  To successfully create a ROI, at least 3 marks shall be placed, and a polygon in light green will demonstrate the region selected. If needed, each anchor can be adjusted with single finger long press on the marker and then dragging the marker to adjust. If extra or unwanted markers are created, the last marker created may be deleted  by using the ‘Rewind’ button, and the last marker created will be removed.
 
 >please attach an screen shoot here to demo ROI process with drone mark in middle
 
 ### Configure the path settings
-Once the ROI is defined (after previous step you shall see a light green polygon on map), user will be able to configure the altitude/speed/overlaps between images, these parameters can be easily inputted into the box/sliding bar on the bottom of the screen. We use meters in altitude and m/s for speed, and for pix4D post-process requirements we recommend to set overlap (sliding bar on the bottom) to be over 70%. Some common default settings are listed below:
+
+Once the ROI is defined (light green polygon on map), configure the altitude, flight speed, and overlaps between images using the settings at the bottom. Altitude is set in meters above takeoff and flight speed is set in m/s. For vegetation surveys or if pix4D post-processing is desired, we recommend setting the overlap to be over 70%. Some recommended settings to start with are listed below:
 ```
-Altitude: 15m ; Speed: 4m/s
-Altitude: 30m ; Speed: 5m/s
-Altitude: 45m ; Speed: 8m/s
-Altitude: 60m ; Speed: 10m/s
-Altitude: 90m ; Speed: 10m/s
+Altitude:15m Speed:4m/s
+Altitude:30m Speed:5m/s
+Altitude:45m Speed:8m/s
+Altitude:60m Speed:10m/s
+Altitude:90m Speed:10m/s
 ```
 >please attach an screen shoot here to demo drone configuration
 
 ### Generate the path planning trajectory and upload mission
-Once the configuration is completed, click 'generate' button and the system shall automatically calculate the optimal trajectory based on energy efficiency, and a back-force black trajectory will pop on screen showing the actual flying path of the drone. Once the user is satisfied with the trajectory, simply click 'UPLOAD' and the status bar of the drone(showing on screen right side, named 'drone status') will change to 'uploading' and then showing 'READY TO EXECUTE' showing that the drone is ready for the mission.
+
+Once the flight configuration is complete, click the ‘Generate' button and the system shall automatically calculate the optimal energy efficient trajectory to survey the area. The trajectory will appear on screen showing the actual flying path of the drone with black lines and camera symbols to indicate image locations. If the trajectory is not satisfactory, use the ‘Clear’ to start over with the defining ROI step. Once the user is satisfied with the trajectory, click 'UPLOAD' and the status bar of the drone (shown on the right side  next to 'drone Mission Status') will change to 'Uploading' and then show 'READY TO EXECUTE' once the mission has been uploaded and the drone is ready for the mission.
 
 >please attach an screen shoot here to demo drone status ready to execute.
 
-### Execute the mission
-After making sure the drone status is 'READY TO EXECUTE' and fullfil the pre-flight checklist, click button 'EXECUTE' and the drone shall be taken off immediately. Meanwhile user can check the drone status on the right side of the screen monitoring the status of the drone.
+###Camera settings
 
-
-### Operations during the flight
-When the drone is in air, it is possible to overwrite the current mission procedure in case hazard situation observed. Since all the physical buttons on the controller has higher privilege than the APP, user can use these physical button to **PAUSE** the drone with the red pause button and the "RETURN TO Home" Button to bring the drone back to where it departs. More details can be found with this link:https://dl.djicdn.com/downloads/smart+controller/20190110-2/DJI_Smart_Controller_User_Manual_EN_V1.0_0110.pdf
-
-## Other functions
-The system also contains some utility functions that can assist user gaining better results, they will be introduced in this section
-
-### Camera settings
-
-On the main screen there is a 'CAMERA' button, click it will brings up a new page showing the current view of the drone camera and available camera settings that can be tuned, the system also provides three preset settings for convenience:
+To adjust the camera settings for the flight, there is a 'CAMERA' button. This button brings up a new page showing the current view of the drone camera and available camera settings that can be tuned. Three preset camera settings are provided for starting points for the surveys, depending on survey type and weather conditions.
 ```
-Preset 1 – For Sunny -> iso: 400, f-stop: 6.3, shutter speed: 1/1600
+Preset 1 – For Sunny -> iso: 400, f-stop: 6.3, shutter speed: 1/1000
 Preset 2 – For Cloudy -> iso: 800, f-stop: 5.6, shutter speed: 1/1000
 Preset 3 – For vegetation/mapping -> shutter priority: 1/1600
 ```
 >please attatch an scrren shoot of camera settings
 
+### Execute the mission
 
-### Drone status 
-On the right side of the screen, the system will list all the available drone status, some key elements are describes below:
+After making sure the drone status is 'READY TO EXECUTE' and the pre-flight checklist has been completed, click 'EXECUTE' and the drone will begin the mission (immediate take-off). During flight, drone status may be monitored using the information panel on the right side of the screen showing current information from the drone.
+
+### Drone status
+On the right side of the map screen, the system will list all the available drone status parameters.
 ```
-Height/Lat/Lot: Drone GPS info including the current height of the drone
-Speed_info: Drone current actual ground speed
-Battery_info: Current drone battery percentage
+Battery info: Current drone battery percentage
 Satellite count: Measure the GPS signal quality
-drone Mission Status: current drone status.
-drone Storage (GB): Available storage on the SD card inserted.
+Speed info: Drone current actual ground speed
+Speed set: Speed set by the user
+Height: Drone height above takeoff location 
+Overlap set: Percentage of overlap set by the user
+Drone heading: Current heading 0-360 degrees (0 is north)
+Battery estimate: Estimate of the amount of current battery that will be remaining upon completion of the flight
+drone Mission Status: current drone status
+drone Storage (GB): Available storage on the SD card inserted (-1.0 GB means NO SD CARD INSERTED)
 Camera Mode: Camera settings, either shutter priority/Manual/Auto
+Camera shutter/ISO/Aperture/ExposureCompensation: Current camera parameters set for the mission
 Drone battery current: The instant current draw by the drone
-Drone battery voltage: The instant voltage the drone battery provides.
+Drone battery voltage: The instant voltage the drone battery provides
 ```
-> please attatch a screen shot on the drone status, better in the air
+
+>please attatch a screen shot on the drone status, better in the air
+
+### Operations during the flight
+
+While in flight operations, it is possible to override the current mission procedure in case of hazardous situations. All physical buttons on the controller have higher privilege than the APP, so the user may  use these physical button to **PAUSE** the drone (red pause button) which will pause the drone where it is, and the "RETURN TO HOME" Button to bring the drone back to where it was launched from (at the preset altitude set for the drone). More details can be found with here:  https://dl.djicdn.com/downloads/smart+controller/20190110-2/DJI_Smart_Controller_User_Manual_EN_V1.0_0110.pdf
+
 
 ### Mission Resuming
-In some cases the drone cannot finish the entire trajectory as planned, in this case the system can automatically resume the unfinished mission by following the procedure as follows:
 
-- Step1: When the drone detect battery lows, controller will have a warning sound user can either manually bring drone back or the drone will automatically stop current mission and return to home point
-
-- Step2: Once the drone is landed, turn off the done(keep the controller open) replace the battery and turn on the drone
-
-- Step3: Click the button 'RESUME_LST_MISSION', once the drone status changed to 'READY_TO_EXECUTE' that indicates the resumed mission is uploaded successfully.
-
-- Step4: Click the button 'EXECUTE_MISSION' the drone will take off and resume to the last waypoint it stopped from previous flight
-
+If the drone cannot finish the entire trajectory in one battery, the system can automatically resume the unfinished mission after exchange of batteries using  the following procedure:
+- Step1: When the drone detects a low battery during flight, the controller will begin emitting a low battery warning sound. The user can either manually bring drone back using the return-to-home button on the controller or the user may wait and the drone will automatically stop the current mission and return to the home location at a certain calculated battery level.
+- Step2: Once the drone has landed, turn off the done (keep the controller open/on), replace the battery, and turn on the drone.
+- Step3: Once the drone has restarted and reconnected to the remote, click the 'RESUME_LST_MISSION' button to upload the remaining portion of the mission to the drone. Once the drone status has changed to 'READY_TO_EXECUTE' that indicates the resumed mission is uploaded successfully.
+- Step4: Click the 'EXECUTE_MISSION' button and the drone will take off and resume to the last waypoint it stopped from the previous flight and continue the mission.
 
 ### In case APP crash
-During the flight, if the controller side APP crashed/turn off wont affect the mission execution, user can use the two buttons 'RECOVER_POLYGON' and 'REGENERATE_WP' to recover polygon and trajectory that was calculated previously to restore the mission details for monitoring.(Note this process wont affect the drone that is currently in the mission.)
+
+During the flight, if the controller APP crashes or turns off, it will not affect the mission execution. To recover the current mission polygon and waypoints, use the two buttons 'RECOVER_POLYGON' and 'REGENERATE_WP' to recover polygon and trajectory that was calculated previously to restore the mission details for monitoring. This process will not affect the drone currently in the mission, however, use with caution as if the current mission is stopped and then resumed (such as to replace the drone battery), bugs may appear that require you to restart the entire mission.
 
 
 <!-- 
