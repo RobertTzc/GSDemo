@@ -18,20 +18,21 @@ Make sure the controller is properly connected to the drone. For help, refer to 
 
 Open the APP and a  registration screen will appear (see  image below). At this stage the APP will go through all necessary pre-requisites, including registering to the DJI API and checking the connection between the drone and the controller. **Please make sure the controller is connected to the internet and drone and internet is available before opening the APP.** The 'Open' button should be available in less than 10 seconds at this screen.
 
->please attach an screen shoot here to demo the login screen
+![loginscreen](https://user-images.githubusercontent.com/71574752/205713830-cd0797b6-00a3-4c30-816b-82aeeb3bfa41.JPG)
 
 ### Configure the path planning plan
 
 Once the register process succeeds, the app will open to a satellite map where the drone is located. Use two fingers to pinch to zoom in/out and pan with one finger just like on the Google maps app. The satellite may take time to load depending on internet quality and speed. **If the map loads and the  drone or controller location marks don’t appear,  please click the ‘locate’ button to be taken to the location of the drone on the map.**
 
->please attach an screen shoot here to demo satellite map and location of the drone
 
+![satellitemap_drone](https://user-images.githubusercontent.com/71574752/205713919-668d273b-0056-4922-ac26-04f741937396.JPG)
 
 ### Draw the ROI(region of interest)
 
 To mark the ROI, use a single finger to tap/click on the map in a corner of the ROI to place an anchor (red mark) on the map. Continue taping/clicking in a clockwise or counterclockwise order around the map to generate the ROI.  To successfully create a ROI, at least 3 marks shall be placed, and a polygon in light green will demonstrate the region selected. If needed, each anchor can be adjusted with single finger long press on the marker and then dragging the marker to adjust. If extra or unwanted markers are created, the last marker created may be deleted  by using the ‘Rewind’ button, and the last marker created will be removed.
 
->please attach an screen shoot here to demo ROI process with drone mark in middle
+![ROI](https://user-images.githubusercontent.com/71574752/205713955-487b552e-c1c0-40c1-9998-ceeaa7d947c5.JPG)
+
 
 ### Configure the path settings
 
@@ -43,13 +44,16 @@ Altitude:45m Speed:8m/s
 Altitude:60m Speed:10m/s
 Altitude:90m Speed:10m/s
 ```
->please attach an screen shoot here to demo drone configuration
+
+![configurethepathsettings](https://user-images.githubusercontent.com/71574752/205713989-0a5d251f-4ab1-4410-8e52-7c95eaf461cb.JPG)
+
 
 ### Generate the path planning trajectory and upload mission
 
 Once the flight configuration is complete, click the ‘Generate' button and the system shall automatically calculate the optimal energy efficient trajectory to survey the area. The trajectory will appear on screen showing the actual flying path of the drone with black lines and camera symbols to indicate image locations. If the trajectory is not satisfactory, use the ‘Clear’ to start over with the defining ROI step. Once the user is satisfied with the trajectory, click 'UPLOAD' and the status bar of the drone (shown on the right side  next to 'drone Mission Status') will change to 'Uploading' and then show 'READY TO EXECUTE' once the mission has been uploaded and the drone is ready for the mission.
 
->please attach an screen shoot here to demo drone status ready to execute.
+![generatepath](https://user-images.githubusercontent.com/71574752/205714035-cd340b5e-1314-4b50-ae8c-249c8a6b1614.JPG)
+
 
 ###Camera settings
 
@@ -59,7 +63,9 @@ Preset 1 – For Sunny -> iso: 400, f-stop: 6.3, shutter speed: 1/1000
 Preset 2 – For Cloudy -> iso: 800, f-stop: 5.6, shutter speed: 1/1000
 Preset 3 – For vegetation/mapping -> shutter priority: 1/1600
 ```
->please attatch an scrren shoot of camera settings
+
+![camerasettings](https://user-images.githubusercontent.com/71574752/205714055-be575c7f-fe46-4035-9e09-5b759ba13a1c.JPG)
+
 
 ### Execute the mission
 
@@ -84,7 +90,7 @@ Drone battery current: The instant current draw by the drone
 Drone battery voltage: The instant voltage the drone battery provides
 ```
 
->please attatch a screen shot on the drone status, better in the air
+![dronestatus_missioninprogress](https://user-images.githubusercontent.com/71574752/205714108-9a0d55c3-d4ba-4f1d-97a6-830e68a8da3b.JPG)
 
 ### Operations during the flight
 
