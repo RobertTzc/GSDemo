@@ -92,10 +92,6 @@ Drone battery voltage: The instant voltage the drone battery provides
 
 ![dronestatus_missioninprogress](https://user-images.githubusercontent.com/71574752/205714108-9a0d55c3-d4ba-4f1d-97a6-830e68a8da3b.JPG)
 
-### Operations during the flight
-
-While in flight operations, it is possible to override the current mission procedure in case of hazardous situations. All physical buttons on the controller have higher privilege than the APP, so the user may  use these physical button to **PAUSE** the drone (red pause button) which will pause the drone where it is, and the "RETURN TO HOME" Button to bring the drone back to where it was launched from (at the preset altitude set for the drone). More details can be found with here:  https://dl.djicdn.com/downloads/smart+controller/20190110-2/DJI_Smart_Controller_User_Manual_EN_V1.0_0110.pdf
-
 
 ### Mission Resuming
 
@@ -110,7 +106,9 @@ If the drone cannot finish the entire trajectory in one battery, the system can 
 During the flight, if the controller APP crashes or turns off, it will not affect the mission execution. To recover the current mission polygon and waypoints, use the two buttons 'RECOVER_POLYGON' and 'REGENERATE_WP' to recover polygon and trajectory that was calculated previously to restore the mission details for monitoring. This process will not affect the drone currently in the mission, however, use with caution as if the current mission is stopped and then resumed (such as to replace the drone battery), bugs may appear that require you to restart the entire mission.
 
 # Emergency operation
-During the mid of the flight, user can pause/stop the aircraft any time.
+
+While in flight operations, it is possible to override the current mission procedure in case of hazardous situations. All physical buttons on the controller have higher privilege than the APP, so the user may  use these physical button to **PAUSE/STOP** the drone (red pause button) which will pause the drone where it is, and the "RETURN TO HOME" Button to bring the drone back to where it was launched from (at the preset altitude set for the drone). More details can be found with here:  https://dl.djicdn.com/downloads/smart+controller/20190110-2/DJI_Smart_Controller_User_Manual_EN_V1.0_0110.pdf
+
 
 **Pause** can be done by single short press on the red pause button. While the mission was paused the drone will hover in the sky and wait for further instruictions (drone status will show execution paused), joystick input will not be taken at this stage. Possible following operations are return to home button, resuming mission.
 
