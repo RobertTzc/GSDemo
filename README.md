@@ -109,6 +109,12 @@ If the drone cannot finish the entire trajectory in one battery, the system can 
 
 During the flight, if the controller APP crashes or turns off, it will not affect the mission execution. To recover the current mission polygon and waypoints, use the two buttons 'RECOVER_POLYGON' and 'REGENERATE_WP' to recover polygon and trajectory that was calculated previously to restore the mission details for monitoring. This process will not affect the drone currently in the mission, however, use with caution as if the current mission is stopped and then resumed (such as to replace the drone battery), bugs may appear that require you to restart the entire mission.
 
+# Emergency operation
+During the mid of the flight, user can pause/stop the aircraft any time.
+
+**Pause** can be done by single short press on the red pause button. While the mission was paused the drone will hover in the sky and wait for further instruictions (drone status will show execution paused), joystick input will not be taken at this stage. Possible following operations are return to home button, resuming mission.
+
+**Stop** can be done by single short click follow with a long press on the red pause button, the drone will hover in the air and terminate the current mission(wont able to resume), and at this stage the joystick input will be taken as manual control. Possible following operations are return to home button, or Joystick overwrite.
 
 <!-- 
 the details of the button are listed below:
